@@ -1,0 +1,399 @@
+#import sickbeard
+#from sickbeard import subtitles, sbdatetime, network_timezones
+#import sickbeard.helpers
+#from sickbeard.common import *
+#from lib import subliminal
+#import os.path, os
+#import datetime
+#set global $title=$show.name
+##set global $header = '<a></a>' % 
+#set global $topmenu="manageShows"#
+#set $exceptions_string = " | ".join($show.exceptions)
+#include $os.path.join($sickbeard.PROG_DIR, "gui/slick/interfaces/default/inc_top.tmpl")
+
+<script type="text/javascript" src="$sbRoot/js/lib/jquery.bookmarkscroll.js?$sbPID"></script>
+
+
+#if $show_message:
+    <div id="show_message" class="ui-corner-all">$show_message</div><br />
+#end if
+
+<input type="hidden" id="sbRoot" value="$sbRoot" />
+
+<script type="text/javascript" src="$sbRoot/js/displayShow.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/plotTooltip.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/sceneExceptionsTooltip.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/ajaxEpSearch.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/ajaxEpSubtitles.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/ajaxEpRetry.js?$sbPID"></script>
+<script type="text/javascript" charset="utf-8">
+<!--
+\$(document).ready(function(){
+    #set $fuzzydate = 'airdate'
+    #if $sickbeard.FUZZY_DATING:
+    fuzzyMoment({
+        containerClass : '.${fuzzydate}',
+        dateHasTime : false,
+        dateFormat : '${sickbeard.DATE_PRESET}',
+        timeFormat : '${sickbeard.TIME_PRESET}',
+        trimZero : #if $sickbeard.TRIM_ZERO then "true" else "false"#
+    });
+    #end if
+    #raw
+    $('.addQTip').each(function () {
+        $(this).css({'cursor':'help', 'font-weight':'800'});
+        $(this).qtip({
+            show: {solo:true},
+            position: {viewport:$(window), my:'left center', adjust:{ y: -10, x: 2 }},
+            style: {tip:{corner:true, method:'polygon'}, classes:'qtip-rounded qtip-dark qtip-shadow ui-tooltip-sb'}
+        });
+    });
+    #end raw
+});
+//-->
+</script>
+<div class="navShows">
+</br>
+<div class="align-left"><b>Change Show:</b>
+<div class="navShow"><img id="prevShow" src="$sbRoot/images/prev.gif" alt="&lt;&lt;" title="Prev Show" /></div>
+<select id="pickShow">
+#for $curShowList in $sortedShowLists:
+#set $curShowType = $curShowList[0]
+#set $curShowList = $curShowList[1]
+
+#if len($sortedShowLists) > 1:
+    <optgroup label="$curShowType">
+#end if
+    #for $curShow in $curShowList:
+    <option value="$curShow.indexerid" #if $curShow == $show then "selected=\"selected\"" else ""#>$curShow.name</option>
+    #end for
+#if len($sortedShowLists) > 1:
+    </optgroup>
+#end if
+#end for
+</select>
+<div class="navShow"><img id="nextShow" src="$sbRoot/images/next.gif" alt="&gt;&gt;" title="Next Show" /></div>
+</div></div>
+
+<div class="tvshowImg"><a href="$sbRoot/showPoster/?show=$show.indexerid&amp;which=poster" rel="dialog" title="$show.name"><img src="$sbRoot/showPoster/?show=$show.indexerid&amp;which=poster_thumb" class="posterThumb" alt=""/></a>
+</div>
+
+<div class="showInfo">
+<h1 class="title" id="scene_exception_$show.indexerid"><a>$show.name</a></h1>
+<span class="headerInfo" style="color: #b7b7b7; line-height: 16px;">
+<span class="tvshowLink" style="vertical-align: text-top">
+#if not $show.imdbid
+	($show.startyear) - $show.runtime min 
+	#if $show.genre: 
+		- $show.genre[1:-1].replace('|',' | ') 
+	#end if
+#else
+    #if 'country_codes' in $show.imdb_info:
+        #for $country in $show.imdb_info['country_codes'].split('|')
+        <img src="$sbRoot/images/flags/${$country}.png" width="16" height="11" style="margin-top: 3px; margin-left: 3px" />
+        #end for
+    #end if
+    #if 'year' in $show.imdb_info:
+        ($show.imdb_info['year']) - $show.imdb_info['runtimes'] min - $show.imdb_info['genres'].replace('|',' | ')
+    #end if
+	<a href="http://www.imdb.com/title/$show.imdbid" rel="noreferrer" onclick="window.open('${sickbeard.ANON_REDIRECT}' + this.href, '_blank'); return false;" title="http://www.imdb.com/title/$show.imdbid"><img alt="[imdb]" height="16" width="16" src="$sbRoot/images/imdb.png" style="margin-top: -1px;"/>
+#end if
+<a href="$sickbeard.indexerApi($show.indexer).config["show_url"]$show.indexerid" onclick="window.open(this.href, '_blank'); return false;" title="$sickbeard.indexerApi($show.indexer).config["show_url"]$show.indexerid"><img alt="$sickbeard.indexerApi($show.indexer).name" height="16" width="16" src="$sbRoot/images/$sickbeard.indexerApi($show.indexer).config["icon"] "style="margin-top: -1px;"/></a>
+#if $xem_numbering or $xem_absolute_numbering:
+    <a href="http://thexem.de/search?q=$show.name" rel="noreferrer" onclick="window.open('${sickbeard.ANON_REDIRECT}' + this.href, '_blank'); return false;" title="http://thexem.de/search?q-$show.name"><img alt="[xem]" height="16" width="16" src="$sbRoot/images/xem.png" style="margin-top: -1px;"/>
+#end if
+</span>
+</span> 
+#if $seasonResults:
+    ##There is a special/season_0?##
+    #if int($seasonResults[-1]["season"]) == 0:
+        #set $season_special = 1
+    #else: 
+        #set $season_special = 0
+    #end if
+
+    #if not $sickbeard.DISPLAY_SHOW_SPECIALS and $season_special:
+        $seasonResults.pop(-1)
+    #end if
+
+<div class="seasonList"> 
+<span>
+    #if (len($seasonResults) > 14):
+    <select id="seasonJump">
+        <option value="jump">Jump to Season</option>
+        #for $seasonNum in $seasonResults:
+        <option value="#season-$seasonNum["season"]">#if int($seasonNum["season"]) == 0 then "Specials" else "Season " + str($seasonNum["season"])#</option>
+        #end for
+    </select>
+    #else:
+    <b>Season:</b>
+        #for $seasonNum in $seasonResults:
+        #if int($seasonNum["season"]) == 0:
+        <a href="#season-$seasonNum["season"]">Specials</a>
+        #else:
+        <a href="#season-$seasonNum["season"]">${str($seasonNum["season"])}</a>
+        #end if
+        #if $seasonNum != $seasonResults[-1]:
+        <span class="separator">|</span>
+        #end if
+        #end for
+    #end if
+</span>
+
+<span class="float-right">
+    #if $season_special:
+    <b>Display Specials:</b>
+        #if sickbeard.DISPLAY_SHOW_SPECIALS:
+        <a class="inner" href="$sbRoot/toggleDisplayShowSpecials/?show=$show.indexerid">Hide</a>
+        #else:
+        <a class="inner" href="$sbRoot/toggleDisplayShowSpecials/?show=$show.indexerid">Show</a>
+        #end if
+    #end if
+</span>
+</div>
+#end if
+<div id="summary" class="align-left">
+<table class="infoTable" cellspacing="1" border="0" cellpadding="0">
+<tr>
+<td  width="75%">
+<table>
+#if $show.network and $show.airs:
+    <tr><td class="showLegend">Originally Airs: </td><td>$show.airs #if not $network_timezones.test_timeformat($show.airs) then " <font color='#FF0000'><b>(invalid Timeformat)</b></font> " else ""# on $show.network</td></tr>
+#else if $show.network:
+    <tr><td class="showLegend">Originally Airs: </td><td>$show.network</td></tr>
+#else if $show.airs:
+    <tr><td class="showLegend">Originally Airs: </td><td>>$show.airs #if not $network_timezones.test_timeformat($show.airs) then " <font color='#FF0000'><b>(invalid Timeformat)</b></font> " else ""#</td></tr>
+#end if
+    <tr><td class="showLegend">Status: </td><td>$show.status</td></tr>
+#if $showLoc[1]:
+    <tr><td class="showLegend">Location: </td><td>$showLoc[0]</td></tr>
+#else:
+    <tr><td class="showLegend"><span style="color: red;">Location: </span></td><td><span style="color: red;">$showLoc[0]</span> (dir is missing)</td></tr>
+#end if
+#set $anyQualities, $bestQualities = $Quality.splitQuality(int($show.quality))
+    <tr><td class="showLegend">Quality: </td><td>
+#if $show.quality in $qualityPresets:
+<span class="quality $qualityPresetStrings[$show.quality]">$qualityPresetStrings[$show.quality]</span>
+#else:
+#if $anyQualities:
+<i>Initial:</i> <b><%=", ".join([Quality.qualityStrings[x] for x in sorted(anyQualities)])%></b> #if $bestQualities then " </br> " else ""#
+#end if
+#if $bestQualities:
+<i>Replace with:</i> <b><%=", ".join([Quality.qualityStrings[x] for x in sorted(bestQualities)])%></b>
+#end if
+#end if
+
+    </td></tr>
+    </table>
+    <td style="float: right;">
+    <table>
+    <tr><td class="showLegend">Paused: </td><td><img src="$sbRoot/images/#if int($show.paused) == 1 then "yes16.png\" alt=\"Y" else "no16.png\" alt=\"N"#" width="16" height="16" /></td></tr>
+    <tr><td class="showLegend">Air-by-Date: </td><td><img src="$sbRoot/images/#if int($show.air_by_date) == 1 then "yes16.png\" alt=\"Y" else "no16.png\" alt=\"N"#" width="16" height="16" /></td></tr>
+    <tr><td class="showLegend">Scene Numbering: </td><td><img src="$sbRoot/images/#if int($show.scene) == 1 then "yes16.png\" alt=\"Y" else "no16.png\" alt=\"N"#" width="16" height="16" /></td></tr>
+	<tr><td class="showLegend">Scene Name:</td><td>#if $show.exceptions then $exceptions_string else $show.name#</td></tr>
+#if $bwl.get_white_keywords_for("gloabl"):
+    <tr><td class="showLegend">Whitelist: </td><td>#echo ', '.join($bwl.get_white_keywords_for("gloabl"))#</td></tr>
+#end if
+#if $bwl.get_black_keywords_for("gloabl"):
+    <tr><td class="showLegend">Blacklist: </td><td>#echo  ', '.join($bwl.get_black_keywords_for("gloabl"))#</td></tr>
+#end if
+#if $bwl.get_white_keywords_for("release_group"):
+    <tr>
+        <td class="showLegend">Wanted Group#if len($bwl.get_white_keywords_for("release_group"))>1 then "s" else ""#:</td>
+        <td>#echo ', '.join($bwl.get_white_keywords_for("release_group"))#</td>
+    </tr>
+#end if
+#if $bwl.get_black_keywords_for("release_group"):
+    <tr>
+        <td class="showLegend">Unwanted Group#if len($bwl.get_black_keywords_for("release_group"))>1 then "s" else ""#:</td>
+        <td>#echo ', '.join($bwl.get_black_keywords_for("release_group"))#</td>
+    </tr>
+#end if
+</table>
+</td>
+</tr>
+</table>
+</div>
+</div>
+
+
+#set $curSeason = -1
+#set $odd = 0
+
+<div style="clear:both;" class="clearfix"></div>
+
+<div class="float-left">
+	Change selected episodes to 
+	<select id="statusSelect">
+		#for $curStatus in [$WANTED, $SKIPPED, $ARCHIVED, $IGNORED, $FAILED] + sorted($Quality.DOWNLOADED):
+		#if $curStatus == $DOWNLOADED:
+		#continue
+		#end if
+		<option value="$curStatus">$statusStrings[$curStatus]</option>
+		#end for
+	</select>
+	<input type="hidden" id="showID" value="$show.indexerid" />
+	<input type="hidden" id="indexer" value="$show.indexer" />
+	<input class="btn" type="button" id="changeStatus" value="Go" />
+</div>
+
+	<div class="float-right clearfix" id="checkboxControls" style="margin-top: 3px;">
+		<div style="padding-bottom: 3px;">
+			<label for="wanted"><span class="wanted">Wanted: <b>$epCounts[$Overview.WANTED]</b> <input type="checkbox" id="wanted" checked="checked" /></span></label>
+			<label for="qual"><span class="qual">Low Quality: <b>$epCounts[$Overview.QUAL]</b> <input type="checkbox" id="qual" checked="checked" /></span></label>
+			<label for="good"><span class="good">Downloaded: <b>$epCounts[$Overview.GOOD]</b> <input type="checkbox" id="good" checked="checked" /></span></label>
+			<label for="skipped"><span class="skipped">Skipped: <b>$epCounts[$Overview.SKIPPED]</b> <input type="checkbox" id="skipped" checked="checked" /></span></label>
+		</div>
+	    <div class="pull-right">
+	        <button class="btn btn-mini seriesCheck" style="line-height: 8px;"><a>Select Filtered Episodes</a></button> 
+	        <button class="btn btn-mini clearAll" style="line-height: 8px;"><a>Clear All</a></button>
+		</div>
+    </div>
+<br />	
+
+<table class="sickbeardTable" cellspacing="1" border="0" cellpadding="0">
+
+#for $epResult in $sqlResults:
+  #if not $sickbeard.DISPLAY_SHOW_SPECIALS and int($epResult["season"]) == 0:
+  	#continue
+  #end if	
+
+  #set $scene = False
+  #set $scene_anime = False
+  #if not $show.air_by_date and not $show.is_sports and not $show.is_anime and $show.is_scene:
+    #set $scene = True
+  #elif not $show.air_by_date and not $show.is_sports and $show.is_anime and $show.is_scene:
+    #set $scene_anime = True
+  #end if
+
+  #set ($dfltSeas, $dfltEpis, $dfltAbsolute) = (0, 0, 0)
+
+  #if (epResult["season"], epResult["episode"]) in $xem_numbering:
+      #set ($dfltSeas, $dfltEpis) = $xem_numbering[(epResult["season"], epResult["episode"])]
+  #end if
+
+  #if epResult["absolute_number"] in $xem_absolute_numbering:
+      #set $dfltAbsolute = $xem_absolute_numbering[epResult["absolute_number"]]
+  #end if
+
+  #if epResult["absolute_number"] in $scene_absolute_numbering:
+      #set $scAbsolute = $scene_absolute_numbering[epResult["absolute_number"]]
+      #set $dfltAbsNumbering = False
+  #else
+      #set $scAbsolute = $dfltAbsolute
+      #set $dfltAbsNumbering = True
+  #end if
+
+  #if (epResult["season"], epResult["episode"]) in $scene_numbering:
+      #set ($scSeas, $scEpis) = $scene_numbering[(epResult["season"], epResult["episode"])]
+      #set $dfltEpNumbering = False
+  #else
+      #set ($scSeas, $scEpis) = ($dfltSeas, $dfltEpis)
+      #set $dfltEpNumbering = True
+  #end if
+
+  #if int($epResult["season"]) != $curSeason:
+  <tr><td colspan="11"  style="height: 0px; padding:0; margin:0;"><a name="season-$epResult["season"]"></a></td></tr>
+  <tr class="seasonheader" id="season-$epResult["season"]" >
+    <td colspan="11">
+        <h2>#if int($epResult["season"]) == 0 then "Specials" else "Season "+str($epResult["season"])#</h2>
+    </td>
+  </tr>
+  <tr id="season-$epResult["season"]-cols"><th width="1%"><input type="checkbox" class="seasonCheck" id="$epResult["season"]" /></th><th>Episode</th>#if $show.is_anime then "<th>Absolute</th>" else ""# #if $scene then "<th>Scene #</th>" else ""# #if $scene_anime then "<th>Scene Absolute</th>" else ""#<th>Name</th><th class="nowrap">Airdate</th>#if $sickbeard.USE_SUBTITLES and $show.subtitles then "<th>Subtitles</th>" else ""#<th>Status</th><th>Search</th></tr>
+        #set $curSeason = int($epResult["season"])
+  #end if    
+
+  #set $epStr = str($epResult["season"]) + "x" + str($epResult["episode"])
+  #set $epLoc = $epResult["location"]
+  <tr class="$Overview.overviewStrings[$epCats[$epStr]] season-$curSeason">
+    <td width="1%">
+#if int($epResult["status"]) != $UNAIRED
+      <input type="checkbox" class="epCheck" id="<%=str(epResult["season"])+'x'+str(epResult["episode"])%>" name="<%=str(epResult["season"]) +"x"+str(epResult["episode"]) %>" />
+#end if
+    </td>
+    <td align="center">
+#if $epLoc and $show._location and $epLoc.lower().startswith($show._location.lower()):
+    #set $epLoc = os.path.basename($epLoc[len($show._location)+1:])
+#elif $epLoc and (not $epLoc.lower().startswith($show._location.lower()) or not $show._location):
+    #set $epLoc = os.path.basename($epLoc)
+#end if
+#if $epLoc != "" and $epLoc != None:
+    <span title="$epLoc" class="addQTip">$epResult["episode"]</span>
+#else
+        $epResult["episode"]#end if#</td>
+    #if $show.is_anime:
+        <td align="center">$epResult["absolute_number"]</td>
+    #end if
+
+    #if $scene:
+    <td align="center">
+            <input type="text" placeholder="<%=str(dfltSeas) + 'x' + str(dfltEpis)%>" size="6" maxlength="8"
+                class="sceneSeasonXEpisode" data-for-season="$epResult["season"]" data-for-episode="$epResult["episode"]"
+                id="sceneSeasonXEpisode_$show.indexerid<%="_"+str(epResult["season"])+"_"+str(epResult["episode"])%>"
+                title="Change the value here if scene numbering differs from the indexer episode numbering"
+                #if $dfltEpNumbering:
+                    value=""
+                #else
+                    value="<%=str(scSeas) + 'x' + str(scEpis)%>"
+                #end if
+                style="padding: 0; text-align: center; max-width: 60px;"
+            />
+    </td>
+    #elif $scene_anime:
+    <td align="center">
+            <input type="text" placeholder="<%=str(dfltAbsolute)%>" size="6" maxlength="8"
+                class="sceneAbsolute" data-for-absolute="$epResult["absolute_number"]"
+                id="sceneAbsolute_$show.indexerid<%="_"+str(epResult["absolute_number"])%>"
+                title="Change the value here if scene absolute numbering differs from the indexer absolute numbering"
+                #if $dfltAbsNumbering:
+                    value=""
+                #else
+                    value="<%=str(scAbsolute)%>"
+                #end if
+                style="padding: 0; text-align: center; max-width: 60px;"
+            />
+    </td>
+    #end if
+
+    <td class="title">
+    #if $epResult["description"] != "" and $epResult["description"] != None:
+    <img style="padding-top: 3px;" src="$sbRoot/images/info32.png" width="16" height="16" class="plotInfo" alt="" id="plot_info_$show.indexerid<%="_"+str(epResult["season"])+"_"+str(epResult["episode"])%>" />
+	#end if
+    $epResult["name"]
+</td>
+    <td align="center" class="nowrap"><span class="${fuzzydate}">#if int($epResult["airdate"]) == 1 then "never" else $sbdatetime.sbdatetime.sbfdate($network_timezones.parse_date_time($epResult["airdate"],$show.airs,$show.network))#</span></td>
+#if $sickbeard.USE_SUBTITLES and $show.subtitles:
+    <td id="subtitles_column" class="subtitles_column" align="left">
+    #if $epResult["subtitles"]:
+        #for $sub_lang in subliminal.language.language_list($epResult["subtitles"].split(',')):
+            #if sub_lang.alpha2 != ""
+            	<img src="$sbRoot/images/flags/${sub_lang.alpha2}.png" width="16" height="11" alt="${sub_lang}" />
+			#end if
+        #end for
+    #end if
+    </td>
+#end if
+#set $curStatus, $curQuality = $Quality.splitCompositeStatus(int($epResult["status"]))
+#if $curQuality != Quality.NONE:   
+    <td class="status_column">$statusStrings[$curStatus] <span class="quality $Quality.qualityStrings[$curQuality].replace("720p","HD720p").replace("1080p","HD1080p").replace("RawHD TV", "RawHD").replace("HD TV", "HD720p")">$Quality.qualityStrings[$curQuality]</span></td>
+#else:    
+    <td class="status_column">$statusStrings[$curStatus]</td>
+#end if
+    <td class="search">
+    #if int($epResult["season"]) != 0:
+		#if ( int($epResult["status"]) in $Quality.SNATCHED or int($epResult["status"]) in $Quality.DOWNLOADED ) and $sickbeard.USE_FAILED_DOWNLOADS:
+			<a class="epRetry" href="retryEpisode?show=$show.indexerid&amp;season=$epResult["season"]&amp;episode=$epResult["episode"]"><img src="$sbRoot/images/search32.png" height="16" alt="retry" title="Retry Download" /></a>
+		#else:
+	    	<a class="epSearch" href="searchEpisode?show=$show.indexerid&amp;season=$epResult["season"]&amp;episode=$epResult["episode"]"><img src="$sbRoot/images/search32.png" width="16" height="16" alt="search" title="Manual Search" /></a>
+		#end if
+    #end if
+    #if $sickbeard.USE_SUBTITLES and $show.subtitles and len(set(str($epResult["subtitles"]).split(',')).intersection(set($subtitles.wantedLanguages()))) < len($subtitles.wantedLanguages()) and $epResult["location"]
+      <a class="epSubtitlesSearch" href="searchEpisodeSubtitles?show=$show.indexerid&amp;season=$epResult["season"]&amp;episode=$epResult["episode"]"><img src="$sbRoot/images/closed_captioning.png" height="16" alt="search subtitles" title="Search Subtitles" /></a>
+    #end if
+    </td>
+   </tr>
+
+#end for
+</table>
+
+#include $os.path.join($sickbeard.PROG_DIR,"gui/slick/interfaces/default/inc_bottom.tmpl")
