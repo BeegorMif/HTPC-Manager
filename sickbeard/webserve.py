@@ -3786,11 +3786,17 @@ class Home(MainHandler):
 
 
     def updatePLEX(self, *args, **kwargs):
+        urllib.urlopen("http://192.168.0.20:8088/?pause")
         if notifiers.plex_notifier.update_library():
             ui.notifications.message(
                 "Library update command sent to Plex Media Server host: " + sickbeard.PLEX_SERVER_HOST)
         else:
             ui.notifications.error("Unable to contact Plex Media Server host: " + sickbeard.PLEX_SERVER_HOST)
+        redirect('/home/')
+
+    def buttonsPLEX(self, action, *kwargs):
+        actionURL = ("http://192.168.0.20:8088/?%s") % action
+        urllib.urlopen(actionURL)
         redirect('/home/')
 
 

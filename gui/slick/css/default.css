@@ -1918,12 +1918,6 @@ pre {
     height: 37px;
     text-align: center;
 }
-
-#donate_form{
-    position: absolute;
-    border: 5px solid gray;
-    padding: 10px;
-    background: white;
-    width: 270px;
-    height: 220px;
+div#content a.Plex{
+width:50px;
 }
