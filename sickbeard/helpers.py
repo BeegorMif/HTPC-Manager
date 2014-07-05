@@ -54,11 +54,8 @@ import sickbeard
 from sickbeard.exceptions import MultipleShowObjectsException, EpisodeNotFoundByAbsoluteNumberException, ex
 from sickbeard import logger, classes
 from sickbeard.common import USER_AGENT, mediaExtensions, subtitleExtensions, XML_NSMAP
-from sickbeard import db
 from sickbeard import encodingKludge as ek
 from sickbeard import notifiers
-from lib import subliminal
-from lib import adba
 
 urllib._urlopener = classes.SickBeardURLopener()
 
@@ -284,46 +281,6 @@ def makeDir(path):
         except OSError:
             return False
     return True
-
-
-def searchDBForShow(regShowName, log=False):
-    showNames = [re.sub('[. -]', ' ', regShowName)]
-
-    yearRegex = "([^()]+?)\s*(\()?(\d{4})(?(2)\))$"
-
-    myDB = db.DBConnection()
-    for showName in showNames:
-
-        sqlResults = myDB.select("SELECT * FROM tv_shows WHERE show_name LIKE ?",
-                                 [showName])
-
-        if len(sqlResults) == 1:
-            return (int(sqlResults[0]["indexer_id"]), sqlResults[0]["show_name"])
-
-        else:
-            # if we didn't get exactly one result then try again with the year stripped off if possible
-            match = re.match(yearRegex, showName)
-            if match and match.group(1):
-                if log:
-                    logger.log(u"Unable to match original name but trying to manually strip and specify show year",
-                               logger.DEBUG)
-                sqlResults = myDB.select(
-                    "SELECT * FROM tv_shows WHERE (show_name LIKE ?) AND startyear = ?",
-                    [match.group(1) + '%', match.group(3)])
-
-            if len(sqlResults) == 0:
-                if log:
-                    logger.log(u"Unable to match a record in the DB for " + showName, logger.DEBUG)
-                continue
-            elif len(sqlResults) > 1:
-                if log:
-                    logger.log(u"Multiple results for " + showName + " in the DB, unable to match show name",
-                               logger.DEBUG)
-                continue
-            else:
-                return (int(sqlResults[0]["indexer_id"]), sqlResults[0]["show_name"])
-
-    return
 
 
 def searchIndexerForShowID(regShowName, indexer=None, indexer_id=None, ui=None):
@@ -1077,10 +1034,16 @@ def get_show_by_name(name, useIndexer=False):
         showObj = sickbeard.name_cache.retrieveShowFromCache(name)
         if showObj:
             return showObj
+
         if not showObj and sickbeard.showList:
-            scene_indexerid, scene_season = sickbeard.scene_exceptions.get_scene_exception_by_name(name)
-            if scene_indexerid:
-                showObj = findCertainShow(sickbeard.showList, scene_indexerid)
+            db_indexerid = searchDBForShow(name)
+            if db_indexerid:
+                showObj = findCertainShow(sickbeard.showList, db_indexerid)
+
+            if not showObj:
+                scene_indexerid, scene_season = sickbeard.scene_exceptions.get_scene_exception_by_name(name)
+                if scene_indexerid:
+                    showObj = findCertainShow(sickbeard.showList, scene_indexerid)
 
             if useIndexer and not showObj:
                 (sn, idx, id) = searchIndexerForShowID(name, ui=classes.ShowListUI)

@@ -56,13 +56,9 @@ import getopt
 
 import sickbeard
 
-from sickbeard import db
-from sickbeard.tv import TVShow
 from sickbeard import logger
 from sickbeard import webserveInit
 from sickbeard.version import SICKBEARD_VERSION
-from sickbeard.databases.mainDB import MIN_DB_VERSION
-from sickbeard.databases.mainDB import MAX_DB_VERSION
 
 from lib.configobj import ConfigObj
 from tornado.ioloop import IOLoop
@@ -80,28 +76,6 @@ forceUpdate = None
 noLaunch = None
 web_options = None
 
-def loadShowsFromDB():
-    """
-    Populates the showList with shows from the database
-    """
-
-    logger.log(u"Loading initial show list")
-
-    myDB = db.DBConnection()
-    sqlResults = myDB.select("SELECT * FROM tv_shows")
-
-    sickbeard.showList = []
-    for sqlShow in sqlResults:
-        try:
-            curShow = TVShow(int(sqlShow["indexer"]), int(sqlShow["indexer_id"]))
-            sickbeard.showList.append(curShow)
-        except Exception, e:
-            logger.log(
-                u"There was an error creating the show in " + sqlShow["location"] + ": " + str(e).decode('utf-8'),
-                logger.ERROR)
-            logger.log(traceback.format_exc(), logger.DEBUG)
-
-            # TODO: update the existing shows if the showlist has something in it
 
 def restore(srcDir, dstDir):
     try:
@@ -282,20 +256,6 @@ def main():
 
     sickbeard.CFG = ConfigObj(sickbeard.CONFIG_FILE)
 
-    CUR_DB_VERSION = db.DBConnection().checkDBVersion()
-
-    if CUR_DB_VERSION > 0:
-        if CUR_DB_VERSION < MIN_DB_VERSION:
-            raise SystemExit("Your database version (" + str(
-                CUR_DB_VERSION) + ") is too old to migrate from with this version of SickRage (" + str(
-                MIN_DB_VERSION) + ").\n" + \
-                             "Upgrade using a previous version of SB first, or start with no database file to begin fresh.")
-        if CUR_DB_VERSION > MAX_DB_VERSION:
-            raise SystemExit("Your database version (" + str(
-                CUR_DB_VERSION) + ") has been incremented past what this version of SickRage supports (" + str(
-                MAX_DB_VERSION) + ").\n" + \
-                             "If you have used other forks of SB, your database may be unusable due to their modifications.")
-
     # Initialize the config and our threads
     sickbeard.initialize(consoleLogging=consoleLogging)
 
@@ -358,19 +318,12 @@ class SickRage(Daemon):
                 sickbeard.launchBrowser(startPort)
             sys.exit()
 
-        # Build from the DB to start with
-        loadShowsFromDB()
-
         # Fire up all our threads
         sickbeard.start()
 
         # Launch browser if we're supposed to
         if sickbeard.LAUNCH_BROWSER and not noLaunch:
             sickbeard.launchBrowser(startPort)
-
-        # Start an update if we're supposed to
-        if forceUpdate or sickbeard.UPDATE_SHOWS_ON_START:
-            sickbeard.showUpdateScheduler.action.run(force=True)  # @UndefinedVariable
 
         if sickbeard.LAUNCH_BROWSER and not (noLaunch or sickbeard.DAEMON or restart):
             sickbeard.launchBrowser(startPort)

@@ -2,10 +2,8 @@ import os
 import traceback
 import sickbeard
 import webserve
-import webapi
 
 from sickbeard import logger
-from sickbeard.helpers import create_https_certificates
 from tornado.web import Application, StaticFileHandler, RedirectHandler, HTTPError
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -74,7 +72,6 @@ def initWebServer(options={}):
     # Main Handler
     app.add_handlers(".*$", [
         (r"%s" % options['web_root'], RedirectHandler, {'url': '%s/home/' % options['web_root']}),
-        (r'%s/api/(.*)(/?)' % options['web_root'], webapi.Api),
         (r'%s/(.*)(/?)' % options['web_root'], webserve.MainHandler)
     ])
 
@@ -83,8 +80,7 @@ def initWebServer(options={}):
         (r'%s/(favicon\.ico)' % options['web_root'], MultiStaticFileHandler,
          {'paths': [os.path.join(options['data_root'], 'images/ico/favicon.ico')]}),
         (r'%s/%s/(.*)(/?)' % (options['web_root'], 'images'), MultiStaticFileHandler,
-         {'paths': [os.path.join(options['data_root'], 'images'),
-                    os.path.join(sickbeard.CACHE_DIR, 'images')]}),
+         {'paths': [os.path.join(options['data_root'], 'images')]}),
         (r'%s/%s/(.*)(/?)' % (options['web_root'], 'css'), MultiStaticFileHandler,
          {'paths': [os.path.join(options['data_root'], 'css')]}),
         (r'%s/%s/(.*)(/?)' % (options['web_root'], 'js'), MultiStaticFileHandler,

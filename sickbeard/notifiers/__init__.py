@@ -18,86 +18,21 @@
 
 import sickbeard
 
-import xbmc
 import plex
-import nmj
-import nmjv2
-import synoindex
-import synologynotifier
-import pytivo
-
-import growl
-import prowl
-from . import libnotify
-import pushover
-import boxcar
 import boxcar2
-import nma
-import pushalot
-import pushbullet
-
-import tweet
 import trakt
-import emailnotify
 
 from sickbeard.common import *
 
 # home theater / nas
-xbmc_notifier = xbmc.XBMCNotifier()
 plex_notifier = plex.PLEXNotifier()
-nmj_notifier = nmj.NMJNotifier()
-nmjv2_notifier = nmjv2.NMJv2Notifier()
-synoindex_notifier = synoindex.synoIndexNotifier()
-synology_notifier = synologynotifier.synologyNotifier()
-pytivo_notifier = pytivo.pyTivoNotifier()
 # devices
-growl_notifier = growl.GrowlNotifier()
-prowl_notifier = prowl.ProwlNotifier()
-libnotify_notifier = libnotify.LibnotifyNotifier()
-pushover_notifier = pushover.PushoverNotifier()
-boxcar_notifier = boxcar.BoxcarNotifier()
 boxcar2_notifier = boxcar2.Boxcar2Notifier()
-nma_notifier = nma.NMA_Notifier()
-pushalot_notifier = pushalot.PushalotNotifier()
-pushbullet_notifier = pushbullet.PushbulletNotifier()
 # social
-twitter_notifier = tweet.TwitterNotifier()
 trakt_notifier = trakt.TraktNotifier()
-email_notifier = emailnotify.EmailNotifier()
 
 notifiers = [
-    libnotify_notifier,  # Libnotify notifier goes first because it doesn't involve blocking on network activity.
-    xbmc_notifier,
     plex_notifier,
-    nmj_notifier,
-    nmjv2_notifier,
-    synoindex_notifier,
-    synology_notifier,
-    pytivo_notifier,
-    growl_notifier,
-    prowl_notifier,
-    pushover_notifier,
-    boxcar_notifier,
-	boxcar2_notifier,
-    nma_notifier,
-    pushalot_notifier,
-    pushbullet_notifier,
-    twitter_notifier,
+    boxcar2_notifier,
     trakt_notifier,
-    email_notifier,
 ]
-
-
-def notify_download(ep_name):
-    for n in notifiers:
-        n.notify_download(ep_name)
-
-
-def notify_subtitle_download(ep_name, lang):
-    for n in notifiers:
-        n.notify_subtitle_download(ep_name, lang)
-
-
-def notify_snatch(ep_name):
-    for n in notifiers:
-        n.notify_snatch(ep_name)
