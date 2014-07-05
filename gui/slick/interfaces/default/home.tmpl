@@ -23,21 +23,61 @@
 <script>
 \$(document).ready(function(){
   \$(".Plex").addClass("btn");
+  \$(".Plex").addClass("btn-default");
 });
 </script>
-#set $plexNav1 = ['Prev', 'Up', 'Menu']
-#set $plexNav2 = ['Left', 'Select', 'Right']
-#set $plexNav3 = ['Info', 'Down', 'Home']
-#for $action in $plexNav1:
-<a href="/home/buttonsPLEX/?&action=$action" class="Plex" id="$action">$action</a>
-#end for
-</br>
-#for $action in $plexNav2:
-<a href="/home/buttonsPLEX/?&action=$action" id="$action" class="Plex">$action</a>
-#end for
-</br>
-#for $action in $plexNav3:
-<a href="/home/buttonsPLEX/?&action=$action" id="$action" class="Plex">$action</a>
-#end for
+<ul id="myTab" class="nav nav-tabs">
+   <li class="active">
+      <a href="#Plex" data-toggle="tab">
+         Plex
+      </a>
+   </li>
+   <li><a href="#ios" data-toggle="tab">iOS</a></li>
+   <li class="dropdown">
+      <a href="#" id="myTabDrop1" class="dropdown-toggle" 
+         data-toggle="dropdown">System 
+         <b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="System">
+         <li><a href="#space" tabindex="-1" data-toggle="tab">Free space</a></li>
+         <li><a href="#temps" tabindex="-1" data-toggle="tab">Temps</a></li>
+      </ul>
+   </li>
+</ul>
+<div id="myTabContent" class="tab-content">
+   <div class="tab-pane fade in active" id="Plex">
+    <div class="btn-group-vertical">
+<a href="/home/buttonsPLEX/?&action=Prev" class="Plex" id="Prev"><span class="glyphicon glyphicon-share-alt"></span></a>
+<a href="/home/buttonsPLEX/?&action=Left" class="Plex" id="Left"><span class="glyphicon glyphicon-arrow-left"></span></a>
+<a href="/home/buttonsPLEX/?&action=Info" class="Plex" id="Info"><span class="glyphicon glyphicon-info-sign"></span></a>
+</div><div class="btn-group-vertical">
+<a href="/home/buttonsPLEX/?&action=Up" class="Plex" id="Up"><span class="glyphicon glyphicon-arrow-up"></span></a>
+<a href="/home/buttonsPLEX/?&action=Select" class="Plex" id="Select"><span class="glyphicon glyphicon-ok-circle"></span></a>
+<a href="/home/buttonsPLEX/?&action=Down" class="Plex" id="Down"><span class="glyphicon glyphicon-arrow-down"></span></a>
+</div><div class="btn-group-vertical">
+<a href="/home/buttonsPLEX/?&action=Menu" class="Plex" id="Menu"><span class="glyphicon glyphicon-list"></span></a>
+<a href="/home/buttonsPLEX/?&action=Right" class="Plex" id="Right"><span class="glyphicon glyphicon-arrow-right"></span></a>
+<a href="/home/buttonsPLEX/?&action=Home" class="Plex" id="Home"><span class="glyphicon glyphicon-home"></span></a>
+</div>
+   </div>
+   <div class="tab-pane fade" id="ios">
+<div class="btn-group">
+<button type="button" class="btn btn-default" onclick="window.open('http://raspberrypi:5050/');">CouchPotato</button>
+<button type="button" class="btn btn-default" onclick="CouchPotatoScan()">Renamer</button>
+</div>
+
+  <a href="EG-Action.php?event=PlexOpen&REFERER=index.php&REFERER=index.php" class="btn btn-default">Open Plex</span></a>
+  </div>
+   <div class="tab-pane fade" id="space">
+      
+   </div>
+   <div class="tab-pane fade" id="temps">
+      <p>Enterprise Java Beans (EJB) is a development architecture 
+         for building highly scalable and robust enterprise level    
+         applications to be deployed on J2EE compliant 
+         Application Server such as JBOSS, Web Logic etc.
+      </p>
+   </div>
+</div>
 
 #include $os.path.join($sickbeard.PROG_DIR,"gui/slick/interfaces/default/inc_bottom.tmpl")
