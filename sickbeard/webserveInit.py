@@ -44,22 +44,6 @@ def initWebServer(options={}):
     assert 'data_root' in options
 
     # tornado setup
-    enable_https = options['enable_https']
-    https_cert = options['https_cert']
-    https_key = options['https_key']
-
-    if enable_https:
-        # If either the HTTPS certificate or key do not exist, make some self-signed ones.
-        if not (https_cert and os.path.exists(https_cert)) or not (https_key and os.path.exists(https_key)):
-            if not create_https_certificates(https_cert, https_key):
-                logger.log(u"Unable to create CERT/KEY files, disabling HTTPS")
-                sickbeard.ENABLE_HTTPS = False
-                enable_https = False
-
-        if not (os.path.exists(https_cert) and os.path.exists(https_key)):
-            logger.log(u"Disabled HTTPS because of missing CERT and KEY files", logger.WARNING)
-            sickbeard.ENABLE_HTTPS = False
-            enable_https = False
 
     # Load the app
     app = Application([],
@@ -90,13 +74,8 @@ def initWebServer(options={}):
 
     global server
 
-    if enable_https:
-        protocol = "https"
-        server = HTTPServer(app, no_keep_alive=True,
-                            ssl_options={"certfile": https_cert, "keyfile": https_key})
-    else:
-        protocol = "http"
-        server = HTTPServer(app, no_keep_alive=True)
+    protocol = "http"
+    server = HTTPServer(app, no_keep_alive=True)
 
     logger.log(u"Starting SickRage on " + protocol + "://" + str(options['host']) + ":" + str(
         options['port']) + "/")

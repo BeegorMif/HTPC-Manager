@@ -105,43 +105,17 @@ ANON_REDIRECT = None
 USE_API = False
 API_KEY = None
 
-ENABLE_HTTPS = False
-HTTPS_CERT = None
-HTTPS_KEY = None
-
 LAUNCH_BROWSER = None
-CACHE_DIR = None
-ACTUAL_CACHE_DIR = None
 ROOT_DIRS = None
 DEBUG = False
 CLEAR_CACHE = None
 
 USE_LISTVIEW = None
 
-QUALITY_DEFAULT = None
-STATUS_DEFAULT = None
-FLATTEN_FOLDERS_DEFAULT = None
-INDEXER_DEFAULT = None
-INDEXER_TIMEOUT = None
-SCENE_DEFAULT = None
-ANIME_DEFAULT = None
-PROVIDER_ORDER = []
-
 UPDATE_FREQUENCY = None
 
 MIN_UPDATE_FREQUENCY = 1
 DEFAULT_UPDATE_FREQUENCY = 1
-
-USE_XBMC = False
-XBMC_ALWAYS_ON = True
-XBMC_NOTIFY_ONSNATCH = False
-XBMC_NOTIFY_ONDOWNLOAD = False
-XBMC_UPDATE_LIBRARY = False
-XBMC_UPDATE_FULL = False
-XBMC_UPDATE_ONLYFIRST = False
-XBMC_HOST = ''
-XBMC_USERNAME = None
-XBMC_PASSWORD = None
 
 USE_PLEX = False
 PLEX_NOTIFY_ONSNATCH = False
@@ -152,70 +126,10 @@ PLEX_HOST = None
 PLEX_USERNAME = None
 PLEX_PASSWORD = None
 
-USE_GROWL = False
-GROWL_NOTIFY_ONSNATCH = False
-GROWL_NOTIFY_ONDOWNLOAD = False
-GROWL_HOST = ''
-GROWL_PASSWORD = None
-
-USE_PROWL = False
-PROWL_NOTIFY_ONSNATCH = False
-PROWL_NOTIFY_ONDOWNLOAD = False
-PROWL_API = None
-PROWL_PRIORITY = 0
-
-USE_TWITTER = False
-TWITTER_NOTIFY_ONSNATCH = False
-TWITTER_NOTIFY_ONDOWNLOAD = False
-TWITTER_USERNAME = None
-TWITTER_PASSWORD = None
-TWITTER_PREFIX = None
-
-USE_BOXCAR = False
-BOXCAR_NOTIFY_ONSNATCH = False
-BOXCAR_NOTIFY_ONDOWNLOAD = False
-BOXCAR_USERNAME = None
-BOXCAR_PASSWORD = None
-BOXCAR_PREFIX = None
-
 USE_BOXCAR2 = False
 BOXCAR2_NOTIFY_ONSNATCH = False
 BOXCAR2_NOTIFY_ONDOWNLOAD = False
 BOXCAR2_ACCESSTOKEN = None
-
-USE_PUSHOVER = False
-PUSHOVER_NOTIFY_ONSNATCH = False
-PUSHOVER_NOTIFY_ONDOWNLOAD = False
-PUSHOVER_USERKEY = None
-PUSHOVER_APIKEY = None
-
-USE_LIBNOTIFY = False
-LIBNOTIFY_NOTIFY_ONSNATCH = False
-LIBNOTIFY_NOTIFY_ONDOWNLOAD = False
-
-USE_NMJ = False
-NMJ_HOST = None
-NMJ_DATABASE = None
-NMJ_MOUNT = None
-
-ANIMESUPPORT = False
-USE_ANIDB = False
-ANIDB_USERNAME = None
-ANIDB_PASSWORD = None
-ANIDB_USE_MYLIST = 0
-ADBA_CONNECTION = None
-ANIME_SPLIT_HOME = False
-
-USE_SYNOINDEX = False
-
-USE_NMJv2 = False
-NMJv2_HOST = None
-NMJv2_DATABASE = None
-NMJv2_DBLOC = None
-
-USE_SYNOLOGYNOTIFIER = False
-SYNOLOGYNOTIFIER_NOTIFY_ONSNATCH = False
-SYNOLOGYNOTIFIER_NOTIFY_ONDOWNLOAD = False
 
 USE_TRAKT = False
 TRAKT_USERNAME = None
@@ -228,41 +142,8 @@ TRAKT_START_PAUSED = False
 TRAKT_USE_RECOMMENDED = False
 TRAKT_SYNC = False
 
-USE_PYTIVO = False
-PYTIVO_NOTIFY_ONSNATCH = False
-PYTIVO_NOTIFY_ONDOWNLOAD = False
-PYTIVO_UPDATE_LIBRARY = False
-PYTIVO_HOST = ''
-PYTIVO_SHARE_NAME = ''
-PYTIVO_TIVO_NAME = ''
-
-USE_NMA = False
-NMA_NOTIFY_ONSNATCH = False
-NMA_NOTIFY_ONDOWNLOAD = False
-NMA_API = None
-NMA_PRIORITY = 0
-
-USE_PUSHALOT = False
-PUSHALOT_NOTIFY_ONSNATCH = False
-PUSHALOT_NOTIFY_ONDOWNLOAD = False
-PUSHALOT_AUTHORIZATIONTOKEN = None
-
-USE_PUSHBULLET = False
-PUSHBULLET_NOTIFY_ONSNATCH = False
-PUSHBULLET_NOTIFY_ONDOWNLOAD = False
-PUSHBULLET_API = None
-PUSHBULLET_DEVICE = None
-
-USE_EMAIL = False
-EMAIL_NOTIFY_ONSNATCH = False
-EMAIL_NOTIFY_ONDOWNLOAD = False
-EMAIL_HOST = None
-EMAIL_PORT = 25
-EMAIL_TLS = False
-EMAIL_USER = None
-EMAIL_PASSWORD = None
-EMAIL_FROM = None
-EMAIL_LIST = None
+USE_EVENTGHOST = False
+EVENTGHOST_SERVER_HOST = None
 
 GUI_NAME = None
 FUZZY_DATING = False
@@ -279,8 +160,6 @@ EXTRA_SCRIPTS = []
 
 GIT_PATH = None
 
-IGNORE_WORDS = "german,french,core2hd,dutch,swedish,reenc,MrLss"
-
 CALENDAR_UNPROTECTED = False
 
 TMDB_API_KEY = 'edc5f123313769de83a71e157758030b'
@@ -290,7 +169,7 @@ __INITIALIZED__ = False
 def initialize(consoleLogging=True):
     with INIT_LOCK:
 
-        global ACTUAL_LOG_DIR, LOG_DIR, WEB_PORT, WEB_LOG, ENCRYPTION_VERSION, WEB_ROOT, WEB_USERNAME, WEB_PASSWORD, WEB_HOST, WEB_IPV6, USE_API, API_KEY, ENABLE_HTTPS, HTTPS_CERT, HTTPS_KEY, \
+        global ACTUAL_LOG_DIR, LOG_DIR, WEB_PORT, WEB_LOG, ENCRYPTION_VERSION, WEB_ROOT, WEB_USERNAME, WEB_PASSWORD, WEB_HOST, WEB_IPV6, USE_API, API_KEY, \
             HANDLE_REVERSE_PROXY, \
             USE_XBMC, XBMC_ALWAYS_ON, XBMC_NOTIFY_ONSNATCH, XBMC_NOTIFY_ONDOWNLOAD, XBMC_UPDATE_FULL, XBMC_UPDATE_ONLYFIRST, \
             XBMC_UPDATE_LIBRARY, XBMC_HOST, XBMC_USERNAME, XBMC_PASSWORD, \
@@ -318,6 +197,7 @@ def initialize(consoleLogging=True):
         CheckSection(CFG, 'Blackhole')
         CheckSection(CFG, 'XBMC')
         CheckSection(CFG, 'PLEX')
+        CheckSection(CFG, 'EVENTGHOST')
         CheckSection(CFG, 'Growl')
         CheckSection(CFG, 'Prowl')
         CheckSection(CFG, 'Twitter')
@@ -455,6 +335,10 @@ def initialize(consoleLogging=True):
         TRAKT_START_PAUSED = bool(check_setting_int(CFG, 'Trakt', 'trakt_start_paused', 0))
         TRAKT_USE_RECOMMENDED = bool(check_setting_int(CFG, 'Trakt', 'trakt_use_recommended', 0))
         TRAKT_SYNC = bool(check_setting_int(CFG, 'Trakt', 'trakt_sync', 0))
+
+        USE_PLEX = bool(check_setting_int(CFG, 'Plex', 'use_plex', 0))
+        PLEX_SERVER_HOST = check_setting_str(CFG, 'Plex', 'plex_server_host', '')
+        PLEX_HOST = check_setting_str(CFG, 'Plex', 'plex_host', '')
 
         GIT_PATH = check_setting_str(CFG, 'General', 'git_path', '')
 
@@ -623,9 +507,6 @@ def save_config():
     new_config['General']['use_api'] = int(USE_API)
     new_config['General']['api_key'] = API_KEY
     new_config['General']['debug'] = int(DEBUG)
-    new_config['General']['enable_https'] = int(ENABLE_HTTPS)
-    new_config['General']['https_cert'] = HTTPS_CERT
-    new_config['General']['https_key'] = HTTPS_KEY
     new_config['General']['handle_reverse_proxy'] = int(HANDLE_REVERSE_PROXY)
     new_config['General']['update_frequency'] = int(UPDATE_FREQUENCY)
     new_config['General']['version_notify'] = int(VERSION_NOTIFY)
@@ -637,10 +518,6 @@ def save_config():
 
     new_config['General']['extra_scripts'] = '|'.join(EXTRA_SCRIPTS)
     new_config['General']['git_path'] = GIT_PATH
-    new_config['General']['ignore_words'] = IGNORE_WORDS
-    new_config['General']['calendar_unprotected'] = int(CALENDAR_UNPROTECTED)
-
-    new_config['General']['clear_cache'] = CLEAR_CACHE
 
     new_config['Plex'] = {}
     new_config['Plex']['use_plex'] = int(USE_PLEX)
@@ -652,71 +529,11 @@ def save_config():
     new_config['Plex']['plex_username'] = PLEX_USERNAME
     new_config['Plex']['plex_password'] = helpers.encrypt(PLEX_PASSWORD, ENCRYPTION_VERSION)
 
-    new_config['Growl'] = {}
-    new_config['Growl']['use_growl'] = int(USE_GROWL)
-    new_config['Growl']['growl_notify_onsnatch'] = int(GROWL_NOTIFY_ONSNATCH)
-    new_config['Growl']['growl_notify_ondownload'] = int(GROWL_NOTIFY_ONDOWNLOAD)
-    new_config['Growl']['growl_host'] = GROWL_HOST
-    new_config['Growl']['growl_password'] = helpers.encrypt(GROWL_PASSWORD, ENCRYPTION_VERSION)
-
-    new_config['Prowl'] = {}
-    new_config['Prowl']['use_prowl'] = int(USE_PROWL)
-    new_config['Prowl']['prowl_notify_onsnatch'] = int(PROWL_NOTIFY_ONSNATCH)
-    new_config['Prowl']['prowl_notify_ondownload'] = int(PROWL_NOTIFY_ONDOWNLOAD)
-    new_config['Prowl']['prowl_api'] = PROWL_API
-    new_config['Prowl']['prowl_priority'] = PROWL_PRIORITY
-
-    new_config['Twitter'] = {}
-    new_config['Twitter']['use_twitter'] = int(USE_TWITTER)
-    new_config['Twitter']['twitter_notify_onsnatch'] = int(TWITTER_NOTIFY_ONSNATCH)
-    new_config['Twitter']['twitter_notify_ondownload'] = int(TWITTER_NOTIFY_ONDOWNLOAD)
-    new_config['Twitter']['twitter_username'] = TWITTER_USERNAME
-    new_config['Twitter']['twitter_password'] = helpers.encrypt(TWITTER_PASSWORD, ENCRYPTION_VERSION)
-    new_config['Twitter']['twitter_prefix'] = TWITTER_PREFIX
-
-    new_config['Boxcar'] = {}
-    new_config['Boxcar']['use_boxcar'] = int(USE_BOXCAR)
-    new_config['Boxcar']['boxcar_notify_onsnatch'] = int(BOXCAR_NOTIFY_ONSNATCH)
-    new_config['Boxcar']['boxcar_notify_ondownload'] = int(BOXCAR_NOTIFY_ONDOWNLOAD)
-    new_config['Boxcar']['boxcar_username'] = BOXCAR_USERNAME
-
     new_config['Boxcar2'] = {}
     new_config['Boxcar2']['use_boxcar2'] = int(USE_BOXCAR2)
     new_config['Boxcar2']['boxcar2_notify_onsnatch'] = int(BOXCAR2_NOTIFY_ONSNATCH)
     new_config['Boxcar2']['boxcar2_notify_ondownload'] = int(BOXCAR2_NOTIFY_ONDOWNLOAD)
     new_config['Boxcar2']['boxcar2_accesstoken'] = BOXCAR2_ACCESSTOKEN
-
-    new_config['Pushover'] = {}
-    new_config['Pushover']['use_pushover'] = int(USE_PUSHOVER)
-    new_config['Pushover']['pushover_notify_onsnatch'] = int(PUSHOVER_NOTIFY_ONSNATCH)
-    new_config['Pushover']['pushover_notify_ondownload'] = int(PUSHOVER_NOTIFY_ONDOWNLOAD)
-    new_config['Pushover']['pushover_userkey'] = PUSHOVER_USERKEY
-    new_config['Pushover']['pushover_apikey'] = PUSHOVER_APIKEY
-
-    new_config['Libnotify'] = {}
-    new_config['Libnotify']['use_libnotify'] = int(USE_LIBNOTIFY)
-    new_config['Libnotify']['libnotify_notify_onsnatch'] = int(LIBNOTIFY_NOTIFY_ONSNATCH)
-    new_config['Libnotify']['libnotify_notify_ondownload'] = int(LIBNOTIFY_NOTIFY_ONDOWNLOAD)
-
-    new_config['NMJ'] = {}
-    new_config['NMJ']['use_nmj'] = int(USE_NMJ)
-    new_config['NMJ']['nmj_host'] = NMJ_HOST
-    new_config['NMJ']['nmj_database'] = NMJ_DATABASE
-    new_config['NMJ']['nmj_mount'] = NMJ_MOUNT
-
-    new_config['NMJv2'] = {}
-    new_config['NMJv2']['use_nmjv2'] = int(USE_NMJv2)
-    new_config['NMJv2']['nmjv2_host'] = NMJv2_HOST
-    new_config['NMJv2']['nmjv2_database'] = NMJv2_DATABASE
-    new_config['NMJv2']['nmjv2_dbloc'] = NMJv2_DBLOC
-
-    new_config['Synology'] = {}
-    new_config['Synology']['use_synoindex'] = int(USE_SYNOINDEX)
-
-    new_config['SynologyNotifier'] = {}
-    new_config['SynologyNotifier']['use_synologynotifier'] = int(USE_SYNOLOGYNOTIFIER)
-    new_config['SynologyNotifier']['synologynotifier_notify_onsnatch'] = int(SYNOLOGYNOTIFIER_NOTIFY_ONSNATCH)
-    new_config['SynologyNotifier']['synologynotifier_notify_ondownload'] = int(SYNOLOGYNOTIFIER_NOTIFY_ONDOWNLOAD)
 
     new_config['Trakt'] = {}
     new_config['Trakt']['use_trakt'] = int(USE_TRAKT)
@@ -730,48 +547,6 @@ def save_config():
     new_config['Trakt']['trakt_use_recommended'] = int(TRAKT_USE_RECOMMENDED)
     new_config['Trakt']['trakt_sync'] = int(TRAKT_SYNC)
 
-    new_config['pyTivo'] = {}
-    new_config['pyTivo']['use_pytivo'] = int(USE_PYTIVO)
-    new_config['pyTivo']['pytivo_notify_onsnatch'] = int(PYTIVO_NOTIFY_ONSNATCH)
-    new_config['pyTivo']['pytivo_notify_ondownload'] = int(PYTIVO_NOTIFY_ONDOWNLOAD)
-    new_config['pyTivo']['pyTivo_update_library'] = int(PYTIVO_UPDATE_LIBRARY)
-    new_config['pyTivo']['pytivo_host'] = PYTIVO_HOST
-    new_config['pyTivo']['pytivo_share_name'] = PYTIVO_SHARE_NAME
-    new_config['pyTivo']['pytivo_tivo_name'] = PYTIVO_TIVO_NAME
-
-    new_config['NMA'] = {}
-    new_config['NMA']['use_nma'] = int(USE_NMA)
-    new_config['NMA']['nma_notify_onsnatch'] = int(NMA_NOTIFY_ONSNATCH)
-    new_config['NMA']['nma_notify_ondownload'] = int(NMA_NOTIFY_ONDOWNLOAD)
-    new_config['NMA']['nma_api'] = NMA_API
-    new_config['NMA']['nma_priority'] = NMA_PRIORITY
-
-    new_config['Pushalot'] = {}
-    new_config['Pushalot']['use_pushalot'] = int(USE_PUSHALOT)
-    new_config['Pushalot']['pushalot_notify_onsnatch'] = int(PUSHALOT_NOTIFY_ONSNATCH)
-    new_config['Pushalot']['pushalot_notify_ondownload'] = int(PUSHALOT_NOTIFY_ONDOWNLOAD)
-    new_config['Pushalot']['pushalot_authorizationtoken'] = PUSHALOT_AUTHORIZATIONTOKEN
-
-    new_config['Pushbullet'] = {}
-    new_config['Pushbullet']['use_pushbullet'] = int(USE_PUSHBULLET)
-    new_config['Pushbullet']['pushbullet_notify_onsnatch'] = int(PUSHBULLET_NOTIFY_ONSNATCH)
-    new_config['Pushbullet']['pushbullet_notify_ondownload'] = int(PUSHBULLET_NOTIFY_ONDOWNLOAD)
-    new_config['Pushbullet']['pushbullet_api'] = PUSHBULLET_API
-    new_config['Pushbullet']['pushbullet_device'] = PUSHBULLET_DEVICE
-
-    new_config['Email'] = {}
-    new_config['Email']['use_email'] = int(USE_EMAIL)
-    new_config['Email']['email_notify_onsnatch'] = int(EMAIL_NOTIFY_ONSNATCH)
-    new_config['Email']['email_notify_ondownload'] = int(EMAIL_NOTIFY_ONDOWNLOAD)
-    new_config['Email']['email_host'] = EMAIL_HOST
-    new_config['Email']['email_port'] = int(EMAIL_PORT)
-    new_config['Email']['email_tls'] = int(EMAIL_TLS)
-    new_config['Email']['email_user'] = EMAIL_USER
-    new_config['Email']['email_password'] = helpers.encrypt(EMAIL_PASSWORD, ENCRYPTION_VERSION)
-    new_config['Email']['email_from'] = EMAIL_FROM
-    new_config['Email']['email_list'] = EMAIL_LIST
-
-
     new_config['GUI'] = {}
     new_config['GUI']['gui_name'] = GUI_NAME
     new_config['GUI']['fuzzy_dating'] = int(FUZZY_DATING)
@@ -780,19 +555,18 @@ def save_config():
     new_config['GUI']['time_preset'] = TIME_PRESET_W_SECONDS
     new_config['GUI']['timezone_display'] = TIMEZONE_DISPLAY
 
-    new_config['FailedDownloads'] = {}
-    new_config['FailedDownloads']['use_failed_downloads'] = int(USE_FAILED_DOWNLOADS)
-    new_config['FailedDownloads']['delete_failed'] = int(DELETE_FAILED)
+    new_config['EventGhost'] = {}
+    new_config['EventGhost']['eventghost_plex'] = int(USE_PLEX)
+    new_config['EventGhost']['eventghost_server_host'] = PLEX_SERVER_HOST
+    new_config['EventGhost']['eventghost_host'] = PLEX_HOST
+
     new_config.write()
 
 
 def launchBrowser(startPort=None):
     if not startPort:
         startPort = WEB_PORT
-    if ENABLE_HTTPS:
-        browserURL = 'https://localhost:%d%s' % (startPort, WEB_ROOT)
-    else:
-        browserURL = 'http://localhost:%d%s' % (startPort, WEB_ROOT)
+    browserURL = 'http://localhost:%d%s' % (startPort, WEB_ROOT)
     try:
         webbrowser.open(browserURL, 2, 1)
     except:

@@ -1,0 +1,76 @@
+#import sickbeard
+#set global $title="Config - Notifications"
+#set global $header="Notifications"
+
+#set global $sbPath="../.."
+
+#set global $topmenu="config"#
+#include $os.path.join($sickbeard.PROG_DIR, "gui/slick/interfaces/default/inc_top.tmpl")
+
+<script type="text/javascript" src="$sbRoot/js/configNotifications.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/config.js?$sbPID"></script>
+#if $varExists('header') 
+	<h1 class="header">$header</h1>
+#else 
+	<h1 class="title">$title</h1>
+#end if
+<div id="config">
+    <div id="config-content">
+        <form id="configForm" action="saveNotifications" method="post">
+            <div id="config-components">
+				<ul>
+					<li><a href="#tabs-1">EventGhost</a></li>
+				</ul>
+
+                <div id="tabs-1">
+
+                <div class="component-group clearfix">
+                    <div class="component-group-desc">
+                        <h3><a href="http://www.eventghost.org/" rel="noreferrer" onclick="window.open('${sickbeard.ANON_REDIRECT}' + this.href, '_blank'); return false;"><img src="$sbRoot/images/notifiers/eventghost.png" style="width:29px" alt="" title="EventGhost"/> EventGhost </a></h3>
+                        <p>Enable control of Plex via Eventghost</p>
+                    </div>
+                    <fieldset class="component-group-list">
+                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_eventghost" id="use_eventghost" #if $sickbeard.USE_EVENTGHOST then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_eventghost">
+                                <span class="component-title">Enable</span>
+                                <span class="component-desc">Should HTPC Manager connect to EventGhost?</span>
+                            </label>
+                        </div>
+                        <div id="content_use_eventghost">
+                            <div class="field-pair">
+                                <label class="nocheck clearfix">
+                                    <span class="component-title">EventGhost Media Server IP:Port</span>
+                                    <input type="text" name="eventghost_server_host" id="eventghost_server_host" value="$sickbeard.PLEX_SERVER_HOST" size="35" />
+                                </label>
+                                <label class="nocheck clearfix">
+                                    <span class="component-title">&nbsp;</span>
+                                    <span class="component-desc">Host running EventGhost (eg. 192.168.0.100:1024)</span>
+                                </label>
+                            </div>
+                            <div class="testNotification" id="testPLEX-result">Click below to test.</div>
+                            <!--input  class="btn" type="button" value="Test Plex Media Server" id="testPLEX" /-->
+                            <input type="submit" class="config_submitter btn" value="Save Changes" />
+                        </div><!-- /content_use_eventghost -->
+
+                    </fieldset>
+                </div><!-- /eventghost component-group -->
+
+                </div><!-- /component-group //-->
+
+            </div><!-- /config-components //-->
+        </form>
+
+	    <br/><input type="submit" class="config_submitter btn" value="Save Changes" /><br/>
+
+    </div>
+
+</div>
+
+<div class="clearfix"></div>
+<script type="text/javascript" charset="utf-8">
+<!--
+    jQuery('#config-components').tabs();
+//-->
+</script>
+#include $os.path.join($sickbeard.PROG_DIR,"gui/slick/interfaces/default/inc_bottom.tmpl")

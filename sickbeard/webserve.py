@@ -38,7 +38,9 @@ from sickbeard import config
 from sickbeard import ui
 from sickbeard import logger, helpers, exceptions, classes
 from sickbeard import encodingKludge as ek
-
+from sickbeard.sf import getTemps
+from sickbeard.space import getSpace
+from sickbeard.space import divWidth
 from sickbeard.common import Overview, cpu_presets
 from sickbeard.exceptions import ex
 
@@ -259,8 +261,6 @@ class PageTemplate(Template):
 
         self.sbRoot = sickbeard.WEB_ROOT
         self.sbHttpPort = sickbeard.WEB_PORT
-        self.sbHttpsPort = sickbeard.WEB_PORT
-        self.sbHttpsEnabled = sickbeard.ENABLE_HTTPS
         self.sbHandleReverseProxy = sickbeard.HANDLE_REVERSE_PROXY
 
         if headers['Host'][0] == '[':
@@ -296,56 +296,14 @@ class IndexerWebUI(MainHandler):
         self.config = config
         self.log = log
 
-    def selectSeries(self, allSeries):
-        searchList = ",".join([x['id'] for x in allSeries])
-        showDirList = ""
-        for curShowDir in self.config['_showDir']:
-            showDirList += "showDir=" + curShowDir + "&"
-        redirect("/home/addShows/addShow?" + showDirList + "seriesList=" + searchList)
-
-
 def _munge(string):
     return unicode(string).encode('utf-8', 'xmlcharrefreplace')
-
-
-def _getEpisode(show, season=None, episode=None, absolute=None):
-    if show is None:
-        return "Invalid show parameters"
-
-    showObj = sickbeard.helpers.findCertainShow(sickbeard.showList, int(show))
-
-    if showObj is None:
-        return "Invalid show paramaters"
-
-    if absolute:
-        epObj = showObj.getEpisode(absolute=int(absolute))
-    elif season and episode:
-        epObj = showObj.getEpisode(int(season), int(episode))
-    else:
-        return "Invalid paramaters"
-
-    if epObj is None:
-        return "Episode couldn't be retrieved"
-
-    return epObj
-
 
 def ManageMenu():
     manageMenu = [
         {'title': 'Backlog Overview', 'path': 'manage/backlogOverview/'},
         {'title': 'Manage Searches', 'path': 'manage/manageSearches/'},
         {'title': 'Episode Status Management', 'path': 'manage/episodeStatuses/'}, ]
-
-    if sickbeard.USE_TORRENTS and sickbeard.TORRENT_METHOD != 'blackhole' \
-            and (sickbeard.ENABLE_HTTPS and sickbeard.TORRENT_HOST[:5] == 'https'
-                 or not sickbeard.ENABLE_HTTPS and sickbeard.TORRENT_HOST[:5] == 'http:'):
-        manageMenu.append({'title': 'Manage Torrents', 'path': 'manage/manageTorrents/'})
-
-    if sickbeard.USE_SUBTITLES:
-        manageMenu.append({'title': 'Missed Subtitle Management', 'path': 'manage/subtitleMissed/'})
-
-    if sickbeard.USE_FAILED_DOWNLOADS:
-        manageMenu.append({'title': 'Failed Downloads', 'path': 'manage/failedDownloads/'})
 
     return manageMenu
 
@@ -362,47 +320,6 @@ class ManageSearches(MainHandler):
         t.submenu = ManageMenu()
 
         return _munge(t)
-
-
-    def forceBacklog(self, *args, **kwargs):
-        # force it to run the next time it looks
-        result = sickbeard.backlogSearchScheduler.forceRun()
-        if result:
-            logger.log(u"Backlog search forced")
-            ui.notifications.message('Backlog search started')
-
-        redirect("/manage/manageSearches/")
-
-
-    def forceSearch(self, *args, **kwargs):
-
-        # force it to run the next time it looks
-        result = sickbeard.dailySearchScheduler.forceRun()
-        if result:
-            logger.log(u"Daily search forced")
-            ui.notifications.message('Daily search started')
-
-        redirect("/manage/manageSearches/")
-
-
-    def forceFindPropers(self, *args, **kwargs):
-
-        # force it to run the next time it looks
-        result = sickbeard.properFinderScheduler.forceRun()
-        if result:
-            logger.log(u"Find propers search forced")
-            ui.notifications.message('Find propers search started')
-
-        redirect("/manage/manageSearches/")
-
-
-    def pauseBacklog(self, paused=None):
-        if paused == "1":
-            sickbeard.searchQueueScheduler.action.pause_backlog()  # @UndefinedVariable
-        else:
-            sickbeard.searchQueueScheduler.action.unpause_backlog()  # @UndefinedVariable
-
-        redirect("/manage/manageSearches/")
 
 
 class Manage(MainHandler):
@@ -1003,7 +920,7 @@ ConfigMenu = [
     {'title': 'Search Settings', 'path': 'config/search/'},
     {'title': 'Search Providers', 'path': 'config/providers/'},
     {'title': 'Subtitles Settings', 'path': 'config/subtitles/'},
-    {'title': 'Post Processing', 'path': 'config/postProcessing/'},
+    {'title': 'EventGhost', 'path': 'config/eventghost/'},
     {'title': 'Notifications', 'path': 'config/notifications/'},
     {'title': 'Anime', 'path': 'config/anime/'},
 ]
@@ -1271,21 +1188,9 @@ class ConfigPostProcessing(MainHandler):
         return _munge(t)
 
 
-    def savePostProcessing(self, naming_pattern=None, naming_multi_ep=None,
-                           xbmc_data=None, xbmc_12plus_data=None, mediabrowser_data=None, sony_ps3_data=None,
-                           wdtv_data=None, tivo_data=None, mede8er_data=None,
-                           keep_processed_dir=None, process_method=None, process_automatically=None,
-                           rename_episodes=None, airdate_episodes=None, unpack=None,
-                           move_associated_files=None, nfo_rename=None, tv_download_dir=None, naming_custom_abd=None,
-                           naming_anime=None,
-                           naming_abd_pattern=None, naming_strip_year=None, use_failed_downloads=None,
-                           delete_failed=None, extra_scripts=None, skip_removed_files=None,
-                           naming_custom_sports=None, naming_sports_pattern=None, autopostprocesser_frequency=None):
+    def savePostProcessing(self):
 
         results = []
-
-        if not config.change_TV_DOWNLOAD_DIR(tv_download_dir):
-            results += ["Unable to create directory " + os.path.normpath(tv_download_dir) + ", dir not changed."]
 
         sickbeard.PROCESS_AUTOMATICALLY = config.checkbox_to_value(process_automatically)
         config.change_AUTOPOSTPROCESSER_FREQUENCY(autopostprocesser_frequency)
@@ -1709,18 +1614,6 @@ class ConfigNotifications(MainHandler):
 
         results = []
 
-        sickbeard.USE_XBMC = config.checkbox_to_value(use_xbmc)
-        sickbeard.XBMC_ALWAYS_ON = config.checkbox_to_value(xbmc_always_on)
-        sickbeard.XBMC_NOTIFY_ONSNATCH = config.checkbox_to_value(xbmc_notify_onsnatch)
-        sickbeard.XBMC_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(xbmc_notify_ondownload)
-        sickbeard.XBMC_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(xbmc_notify_onsubtitledownload)
-        sickbeard.XBMC_UPDATE_LIBRARY = config.checkbox_to_value(xbmc_update_library)
-        sickbeard.XBMC_UPDATE_FULL = config.checkbox_to_value(xbmc_update_full)
-        sickbeard.XBMC_UPDATE_ONLYFIRST = config.checkbox_to_value(xbmc_update_onlyfirst)
-        sickbeard.XBMC_HOST = config.clean_hosts(xbmc_host)
-        sickbeard.XBMC_USERNAME = xbmc_username
-        sickbeard.XBMC_PASSWORD = xbmc_password
-
         sickbeard.USE_PLEX = config.checkbox_to_value(use_plex)
         sickbeard.PLEX_NOTIFY_ONSNATCH = config.checkbox_to_value(plex_notify_onsnatch)
         sickbeard.PLEX_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(plex_notify_ondownload)
@@ -1731,66 +1624,11 @@ class ConfigNotifications(MainHandler):
         sickbeard.PLEX_USERNAME = plex_username
         sickbeard.PLEX_PASSWORD = plex_password
 
-        sickbeard.USE_GROWL = config.checkbox_to_value(use_growl)
-        sickbeard.GROWL_NOTIFY_ONSNATCH = config.checkbox_to_value(growl_notify_onsnatch)
-        sickbeard.GROWL_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(growl_notify_ondownload)
-        sickbeard.GROWL_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(growl_notify_onsubtitledownload)
-        sickbeard.GROWL_HOST = config.clean_host(growl_host, default_port=23053)
-        sickbeard.GROWL_PASSWORD = growl_password
-
-        sickbeard.USE_PROWL = config.checkbox_to_value(use_prowl)
-        sickbeard.PROWL_NOTIFY_ONSNATCH = config.checkbox_to_value(prowl_notify_onsnatch)
-        sickbeard.PROWL_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(prowl_notify_ondownload)
-        sickbeard.PROWL_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(prowl_notify_onsubtitledownload)
-        sickbeard.PROWL_API = prowl_api
-        sickbeard.PROWL_PRIORITY = prowl_priority
-
-        sickbeard.USE_TWITTER = config.checkbox_to_value(use_twitter)
-        sickbeard.TWITTER_NOTIFY_ONSNATCH = config.checkbox_to_value(twitter_notify_onsnatch)
-        sickbeard.TWITTER_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(twitter_notify_ondownload)
-        sickbeard.TWITTER_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(twitter_notify_onsubtitledownload)
-
-        sickbeard.USE_BOXCAR = config.checkbox_to_value(use_boxcar)
-        sickbeard.BOXCAR_NOTIFY_ONSNATCH = config.checkbox_to_value(boxcar_notify_onsnatch)
-        sickbeard.BOXCAR_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(boxcar_notify_ondownload)
-        sickbeard.BOXCAR_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(boxcar_notify_onsubtitledownload)
-        sickbeard.BOXCAR_USERNAME = boxcar_username
-
         sickbeard.USE_BOXCAR2 = config.checkbox_to_value(use_boxcar2)
         sickbeard.BOXCAR2_NOTIFY_ONSNATCH = config.checkbox_to_value(boxcar2_notify_onsnatch)
         sickbeard.BOXCAR2_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(boxcar2_notify_ondownload)
         sickbeard.BOXCAR2_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(boxcar2_notify_onsubtitledownload)
         sickbeard.BOXCAR2_ACCESSTOKEN = boxcar2_accesstoken
-
-        sickbeard.USE_PUSHOVER = config.checkbox_to_value(use_pushover)
-        sickbeard.PUSHOVER_NOTIFY_ONSNATCH = config.checkbox_to_value(pushover_notify_onsnatch)
-        sickbeard.PUSHOVER_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(pushover_notify_ondownload)
-        sickbeard.PUSHOVER_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(pushover_notify_onsubtitledownload)
-        sickbeard.PUSHOVER_USERKEY = pushover_userkey
-        sickbeard.PUSHOVER_APIKEY = pushover_apikey
-
-        sickbeard.USE_LIBNOTIFY = config.checkbox_to_value(use_libnotify)
-        sickbeard.LIBNOTIFY_NOTIFY_ONSNATCH = config.checkbox_to_value(libnotify_notify_onsnatch)
-        sickbeard.LIBNOTIFY_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(libnotify_notify_ondownload)
-        sickbeard.LIBNOTIFY_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(libnotify_notify_onsubtitledownload)
-
-        sickbeard.USE_NMJ = config.checkbox_to_value(use_nmj)
-        sickbeard.NMJ_HOST = config.clean_host(nmj_host)
-        sickbeard.NMJ_DATABASE = nmj_database
-        sickbeard.NMJ_MOUNT = nmj_mount
-
-        sickbeard.USE_NMJv2 = config.checkbox_to_value(use_nmjv2)
-        sickbeard.NMJv2_HOST = config.clean_host(nmjv2_host)
-        sickbeard.NMJv2_DATABASE = nmjv2_database
-        sickbeard.NMJv2_DBLOC = nmjv2_dbloc
-
-        sickbeard.USE_SYNOINDEX = config.checkbox_to_value(use_synoindex)
-
-        sickbeard.USE_SYNOLOGYNOTIFIER = config.checkbox_to_value(use_synologynotifier)
-        sickbeard.SYNOLOGYNOTIFIER_NOTIFY_ONSNATCH = config.checkbox_to_value(synologynotifier_notify_onsnatch)
-        sickbeard.SYNOLOGYNOTIFIER_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(synologynotifier_notify_ondownload)
-        sickbeard.SYNOLOGYNOTIFIER_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(
-            synologynotifier_notify_onsubtitledownload)
 
         sickbeard.USE_TRAKT = config.checkbox_to_value(use_trakt)
         sickbeard.TRAKT_USERNAME = trakt_username
@@ -1803,51 +1641,34 @@ class ConfigNotifications(MainHandler):
         sickbeard.TRAKT_USE_RECOMMENDED = config.checkbox_to_value(trakt_use_recommended)
         sickbeard.TRAKT_SYNC = config.checkbox_to_value(trakt_sync)
 
-        if sickbeard.USE_TRAKT:
-            sickbeard.traktCheckerScheduler.silent = False
+#        if sickbeard.USE_TRAKT:
+#            sickbeard.traktCheckerScheduler.silent = False
+#        else:
+#            sickbeard.traktCheckerScheduler.silent = True
+
+        sickbeard.save_config()
+
+        if len(results) > 0:
+            for x in results:
+                logger.log(x, logger.ERROR)
+            ui.notifications.error('Error(s) Saving Configuration',
+                                   '<br />\n'.join(results))
         else:
-            sickbeard.traktCheckerScheduler.silent = True
+            ui.notifications.message('Configuration Saved', ek.ek(os.path.join, sickbeard.CONFIG_FILE))
 
-        sickbeard.USE_EMAIL = config.checkbox_to_value(use_email)
-        sickbeard.EMAIL_NOTIFY_ONSNATCH = config.checkbox_to_value(email_notify_onsnatch)
-        sickbeard.EMAIL_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(email_notify_ondownload)
-        sickbeard.EMAIL_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(email_notify_onsubtitledownload)
-        sickbeard.EMAIL_HOST = config.clean_host(email_host)
-        sickbeard.EMAIL_PORT = config.to_int(email_port, default=25)
-        sickbeard.EMAIL_FROM = email_from
-        sickbeard.EMAIL_TLS = config.checkbox_to_value(email_tls)
-        sickbeard.EMAIL_USER = email_user
-        sickbeard.EMAIL_PASSWORD = email_password
-        sickbeard.EMAIL_LIST = email_list
 
-        sickbeard.USE_PYTIVO = config.checkbox_to_value(use_pytivo)
-        sickbeard.PYTIVO_NOTIFY_ONSNATCH = config.checkbox_to_value(pytivo_notify_onsnatch)
-        sickbeard.PYTIVO_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(pytivo_notify_ondownload)
-        sickbeard.PYTIVO_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(pytivo_notify_onsubtitledownload)
-        sickbeard.PYTIVO_UPDATE_LIBRARY = config.checkbox_to_value(pytivo_update_library)
-        sickbeard.PYTIVO_HOST = config.clean_host(pytivo_host)
-        sickbeard.PYTIVO_SHARE_NAME = pytivo_share_name
-        sickbeard.PYTIVO_TIVO_NAME = pytivo_tivo_name
+class ConfigEventghost(MainHandler):
+    def index(self, *args, **kwargs):
+        t = PageTemplate(headers=self.request.headers, file="config_eventghost.tmpl")
+        return _munge(t)
 
-        sickbeard.USE_NMA = config.checkbox_to_value(use_nma)
-        sickbeard.NMA_NOTIFY_ONSNATCH = config.checkbox_to_value(nma_notify_onsnatch)
-        sickbeard.NMA_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(nma_notify_ondownload)
-        sickbeard.NMA_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(nma_notify_onsubtitledownload)
-        sickbeard.NMA_API = nma_api
-        sickbeard.NMA_PRIORITY = nma_priority
 
-        sickbeard.USE_PUSHALOT = config.checkbox_to_value(use_pushalot)
-        sickbeard.PUSHALOT_NOTIFY_ONSNATCH = config.checkbox_to_value(pushalot_notify_onsnatch)
-        sickbeard.PUSHALOT_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(pushalot_notify_ondownload)
-        sickbeard.PUSHALOT_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(pushalot_notify_onsubtitledownload)
-        sickbeard.PUSHALOT_AUTHORIZATIONTOKEN = pushalot_authorizationtoken
+    def saveEventghost(self, use_eventghost=None, eventghost_server_host=None):
 
-        sickbeard.USE_PUSHBULLET = config.checkbox_to_value(use_pushbullet)
-        sickbeard.PUSHBULLET_NOTIFY_ONSNATCH = config.checkbox_to_value(pushbullet_notify_onsnatch)
-        sickbeard.PUSHBULLET_NOTIFY_ONDOWNLOAD = config.checkbox_to_value(pushbullet_notify_ondownload)
-        sickbeard.PUSHBULLET_NOTIFY_ONSUBTITLEDOWNLOAD = config.checkbox_to_value(pushbullet_notify_onsubtitledownload)
-        sickbeard.PUSHBULLET_API = pushbullet_api
-        sickbeard.PUSHBULLET_DEVICE = pushbullet_device_list
+        results = []
+
+        sickbeard.USE_EVENTGHOST = config.checkbox_to_value(use_eventghost)
+        sickbeard.EVENTGHOST_SERVER_HOST = config.clean_host(eventghost_server_host)
 
         sickbeard.save_config()
 
@@ -1978,6 +1799,7 @@ class Config(MainHandler):
     postProcessing = ConfigPostProcessing
     notifications = ConfigNotifications
     anime = ConfigAnime
+    eventghost = ConfigEventghost
 
 
 def haveXBMC():
@@ -2584,20 +2406,10 @@ class Home(MainHandler):
     def index(self, *args, **kwargs):
 
         t = PageTemplate(headers=self.request.headers, file="home.tmpl")
-        if sickbeard.ANIME_SPLIT_HOME:
-            shows = []
-            anime = []
-            for show in sickbeard.showList:
-                if show.is_anime:
-                    anime.append(show)
-                else:
-                    shows.append(show)
-            t.showlists = [["Shows", shows],
-                           ["Anime", anime]]
-        else:
-            t.showlists = [["Shows", sickbeard.showList]]
-
         t.submenu = HomeMenu()
+        t.temps = getTemps()
+        t.space = getSpace()
+        t.width = divWidth()
         return _munge(t)
 
     def testBoxcar2(self, accesstoken=None):

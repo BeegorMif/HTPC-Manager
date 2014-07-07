@@ -289,10 +289,7 @@ def main():
         'log_dir': log_dir,
         'username': sickbeard.WEB_USERNAME,
         'password': sickbeard.WEB_PASSWORD,
-        'enable_https': sickbeard.ENABLE_HTTPS,
         'handle_reverse_proxy': sickbeard.HANDLE_REVERSE_PROXY,
-        'https_cert': sickbeard.HTTPS_CERT,
-        'https_key': sickbeard.HTTPS_KEY,
     }
 
     # Start SickRage

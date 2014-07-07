@@ -1,7 +1,6 @@
 #import sickbeard
 #import datetime
 #from sickbeard.common import *
-
 #set global $title="Home"
 #set global $header="Plex Controls"
 
@@ -69,15 +68,24 @@
   <a href="EG-Action.php?event=PlexOpen&REFERER=index.php&REFERER=index.php" class="btn btn-default">Open Plex</span></a>
   </div>
    <div class="tab-pane fade" id="space">
-      
+      <div style="width:200px;background-color:#4e4e4e"><div style="width:$width[0];background-color:#8e8e8e">$space[0]</div></div>
+      <div style="width:200px;background-color:#4e4e4e"><div style="width:$width[1];background-color:#8e8e8e">$space[1]</div></div>
    </div>
    <div class="tab-pane fade" id="temps">
-      <p>Enterprise Java Beans (EJB) is a development architecture 
-         for building highly scalable and robust enterprise level    
-         applications to be deployed on J2EE compliant 
-         Application Server such as JBOSS, Web Logic etc.
-      </p>
+<table class="table">
+<tr>
+#set $headings = ['System', 'CPU', 'HD1', 'HD2', 'Core', 'GPU', 'Fan Speed']
+#for $hd in $headings:
+<th id="$hd">$hd</th>
+#end for
+</tr>
+#for $i in $temps:
+    <td id="$i">$i</td>
+#end for
+</tr>
+</table>
    </div>
 </div>
+
 
 #include $os.path.join($sickbeard.PROG_DIR,"gui/slick/interfaces/default/inc_bottom.tmpl")

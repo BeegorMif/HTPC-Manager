@@ -5,8 +5,6 @@
 #from sickbeard.common import *
 #from sickbeard.sbdatetime import *
 #from sickbeard import config
-#from sickbeard import metadata
-#from sickbeard.metadata.generic import GenericMetadata
 #set global $title  = "Config - General"
 #set global $header = "General Configuration"
 
@@ -58,14 +56,6 @@
                         </div>
 
                         <div class="field-pair">
-                            <input type="checkbox" name="update_shows_on_start" id="update_shows_on_start" #if $sickbeard.UPDATE_SHOWS_ON_START then "checked=\"checked\"" else ""#/>
-                            <label class="clearfix" for="update_shows_on_start">
-                                <span class="component-title">Update Shows on Start</span>
-                                <span class="component-desc">Should SickRage update shows info when started?</span>
-                            </label>
-                        </div>  
-                        
-                        <div class="field-pair">
                             <input type="checkbox" name="version_notify" id="version_notify" #if $sickbeard.VERSION_NOTIFY then "checked=\"checked\"" else ""#/>
                             <label class="clearfix" for="version_notify">
                                 <span class="component-title">Check for Update</span>
@@ -97,39 +87,6 @@
                             <label class="nocheck clearfix">
                                 <span class="component-title">&nbsp;</span>
                                 <span class="component-desc">updates run on startup and in the background on the interval specified above.</span>
-                            </label>
-                        </div>
-
-                        <div class="field-pair">
-                            <input type="checkbox" name="sort_article" id="sort_article" #if $sickbeard.SORT_ARTICLE then "checked=\"checked\"" else ""#/>
-                            <label class="clearfix" for="sort_article"> 
-                                <span class="component-title">Sort Articles</span>
-                                <span class="component-desc">Include articles (The, A, An) when sorting show lists.</span>
-                            </label>
-                        </div>
-                        
-                        <div class="field-pair">
-                            <label class="nocheck clearfix" for="indexer_default">
-                                <span class="component-title">Default Indexer:</span>
-                                <span class="component-desc">
-                                    <select id="indexer_default" name="indexer_default">
-                                        <option value="0" #if $indexer == 0 then "selected=\"selected\"" else ""#>All Indexers</option>
-                                        #for $indexer in $sickbeard.indexerApi().indexers
-                                        <option value="$indexer" #if $indexer == $sickbeard.INDEXER_DEFAULT then "selected=\"selected\"" else ""#>$sickbeard.indexerApi().indexers[$indexer]</option>
-                                        #end for
-                                    </select>
-                                </span>
-                            </label>
-                        </div>
-
-                        <div class="field-pair">
-                            <label class="nocheck clearfix">
-                                <span class="component-title">Indexer Timeout</span>
-                                <input type="text" name="indexer_timeout" id="indexer_timeout" value="$sickbeard.INDEXER_TIMEOUT" size="5" />
-                            </label>
-                            <label class="nocheck clearfix">
-                                <span class="component-title">&nbsp;</span>
-                                <span class="component-desc">Time in seconds before Indexer search times out for adding shows (eg. 10)</span>
                             </label>
                         </div>
 
@@ -214,38 +171,6 @@
                                 <span class="component-title">&nbsp;</span>
                                 <span class="component-desc">Password for authentication (blank for none)</span>
                             </label>
-                        </div>
-
-                        <div class="field-pair">
-                            <label class="clearfix">
-                                <input type="checkbox" name="enable_https" class="enabler" id="enable_https" #if $sickbeard.ENABLE_HTTPS then "checked=\"checked\"" else ""#/>
-                                <span class="component-title">Enable HTTPS</span>
-                                <span class="component-desc">Enable accessing the interface from a HTTPS address.</span>
-                            </label>
-                        </div>
-                        
-                        <div id="content_enable_https">
-                            <div class="field-pair">
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">HTTPS Certificate</span>
-                                    <input type="text" name="https_cert" value="$sickbeard.HTTPS_CERT" size="35" />
-                                </label>
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">File name or path to HTTPS Certificate.</span>
-                                </label>
-                            </div>
-    
-                            <div class="field-pair">
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">HTTPS Key</span>
-                                    <input type="text" name="https_key" value="$sickbeard.HTTPS_KEY" size="35" />
-                                </label>
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">File name or path to HTTPS Key.</span>
-                                </label>
-                            </div>
                         </div>
 
                         <input type="submit" class="btn config_submitter" value="Save Changes" />
@@ -368,23 +293,6 @@
                     </div>
 
                     <fieldset class="component-group-list" style="width:670px">
-
-                        <div class="field-pair">
-                            <input type="checkbox" name="fuzzy_dating" id="fuzzy_dating" class="viewIf datePresets" #if $sickbeard.FUZZY_DATING == True then "checked=\"checked\"" else ""#/>
-                            <label class="clearfix" for="fuzzy_dating">
-                                <span class="component-title">Display Fuzzy Dates</span>
-                                <span class="component-desc">E.g "Last Thu", "On Tue" and move the absolute date into time tooltips?</span>
-                            </label>
-                        </div>
-                        <div class="show_if_fuzzy_dating#if True == $sickbeard.FUZZY_DATING then '' else ' metadataDiv'#">
-                            <div class="field-pair">
-                                <input type="checkbox" name="trim_zero" id="trim_zero" #if $sickbeard.TRIM_ZERO == True then "checked=\"checked\"" else ""#/>
-                                <label class="clearfix" for="trim_zero">
-                                    <span class="component-title">Trim Zero Padding</span>
-                                    <span class="component-desc">Trim leading number "0" shown on hour of day and date of month?</span>
-                                </label>
-                            </div>
-                        </div>
 
                         <div class="field-pair">
                             <label class="nocheck clearfix" for="date_presets">
