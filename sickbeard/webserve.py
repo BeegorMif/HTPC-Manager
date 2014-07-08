@@ -923,6 +923,7 @@ ConfigMenu = [
     {'title': 'EventGhost', 'path': 'config/eventghost/'},
     {'title': 'Notifications', 'path': 'config/notifications/'},
     {'title': 'Anime', 'path': 'config/anime/'},
+    {'title': 'Drives', 'path': 'config/drives/'},
 ]
 
 
@@ -1783,6 +1784,60 @@ class ConfigAnime(MainHandler):
             ui.notifications.message('Configuration Saved', ek.ek(os.path.join, sickbeard.CONFIG_FILE))
 
 
+class ConfigDrives(MainHandler):
+    def index(self, *args, **kwargs):
+
+        t = PageTemplate(headers=self.request.headers, file="config_drives.tmpl")
+        t.submenu = ConfigMenu
+        return _munge(t)
+
+
+    def saveDrives(self, use_drives=None, use_driveA=None, use_driveB=None, use_driveC=None, \
+                  driveA_name=None, driveB_name=None, driveC_name=None,
+                  split_home=None):
+
+        results = []
+
+        if use_drives == "on":
+            use_drives = 1
+        else:
+            use_drives = 0
+			
+        if use_driveA == "on":
+            use_driveA = 1
+        else:
+            use_driveA = 0
+			
+        if use_driveB == "on":
+            use_driveB = 1
+        else:
+            use_driveB = 0
+			
+        if use_driveC == "on":
+            use_driveC = 1
+        else:
+            use_driveC = 0
+
+
+        sickbeard.USE_DRIVES = use_drives
+        sickbeard.USE_DRIVEA = use_driveA
+        sickbeard.USE_DRIVEB = use_driveB
+        sickbeard.USE_DRIVEC = use_driveC
+        sickbeard.DRIVEA_NAME = driveA_name
+        sickbeard.DRIVEB_NAME = driveB_name
+        sickbeard.DRIVEC_NAME = driveC_name
+
+        sickbeard.save_config()
+
+        if len(results) > 0:
+            for x in results:
+                logger.log(x, logger.ERROR)
+            ui.notifications.error('Error(s) Saving Configuration',
+                                   '<br />\n'.join(results))
+        else:
+            ui.notifications.message('Configuration Saved', ek.ek(os.path.join, sickbeard.CONFIG_FILE))
+
+
 class Config(MainHandler):
     def index(self, *args, **kwargs):
         t = PageTemplate(headers=self.request.headers, file="config.tmpl")
@@ -1800,6 +1855,7 @@ class Config(MainHandler):
     notifications = ConfigNotifications
     anime = ConfigAnime
     eventghost = ConfigEventghost
+    drives = ConfigDrives
 
 
 def haveXBMC():

@@ -1,0 +1,127 @@
+#import os.path
+#import datetime
+#import locale
+#import sickbeard
+#from sickbeard.common import *
+#from sickbeard.sbdatetime import *
+#from sickbeard import config
+#set global $title  = "Config - Drives"
+#set global $header = "Drive Configuration"
+
+#set global $sbPath="../.."
+
+#set global $topmenu="config"#
+#include $os.path.join($sickbeard.PROG_DIR, "gui/slick/interfaces/default/inc_top.tmpl")
+#if $varExists('header') 
+	<h1 class="header">$header</h1>
+#else 
+	<h1 class="title">$title</h1>
+#end if
+
+<script type="text/javascript" src="$sbRoot/js/config.js?$sbPID"></script>
+
+<div id="config">
+<div id="config-content">
+
+<form id="configForm" action="saveDrives" method="post">
+            <div id="config-components">
+				
+				<ul>
+					<li><a href="#core-component-group1">Drives</a></li>
+				</ul>
+				
+                <div id="core-component-group1" class="component-group clearfix">
+					
+                    <div class="component-group-desc">
+                        <h3>Drives</h3>
+                        <p>Configure Hard Drive Names</p>
+                    </div>
+
+                    <fieldset class="component-group-list" style="width:670px">
+                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_drives" id="use_drives" #if $sickbeard.USE_DRIVES then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_drives">
+                                <span class="component-title">Enable</span>
+                                <span class="component-desc">Should HTPC Manager show drive space?</span>
+                            </label>
+                        </div>
+
+<div id="content_use_drives">
+
+                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_driveA" id="use_driveA" #if $sickbeard.USE_DRIVEA then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_driveA">
+                                <span class="component-title">Use Drive 1</span>
+                            </label>
+                        </div>
+						<div id="content_use_driveA">
+                        <div class="field-pair">
+                            <label class="nocheck clearfix">
+                                <span class="component-title">Drive A name</span>
+                                <input type="text" name="driveA_name" id="driveA_name" value="$sickbeard.DRIVEA_NAME" size="10" />
+                            </label>
+                            <label class="nocheck clearfix">
+                                <span class="component-title">&nbsp;</span>
+                                <span class="component-desc">Name to display for the first local drive</span>
+                            </label>
+                        </div>
+						</div>
+
+						                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_driveB" id="use_driveB" #if $sickbeard.USE_DRIVEB then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_driveB">
+                                <span class="component-title">Use Drive 2</span>
+                            </label>
+                        </div>
+												<div id="content_use_driveB">
+                        <div class="field-pair">
+                            <label class="nocheck clearfix">
+                                <span class="component-title">Drive B name</span>
+                                <input type="text" name="driveB_name" id="driveB_name" value="$sickbeard.DRIVEB_NAME" size="10" />
+                            </label>
+                            <label class="nocheck clearfix">
+                                <span class="component-title">&nbsp;</span>
+                                <span class="component-desc">Name to display for the second local drive</span>
+                            </label>
+                        </div>
+						</div>
+
+						                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_driveC" id="use_driveC" #if $sickbeard.USE_DRIVEC then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_driveC">
+                                <span class="component-title">Use Drive 3</span>
+                            </label>
+                        </div>
+												<div id="content_use_driveC">
+                        <div class="field-pair">
+                            <label class="nocheck clearfix">
+                                <span class="component-title">Drive C name</span>
+                                <input type="text" name="driveC_name" id="driveC_name" value="$sickbeard.DRIVEC_NAME" size="10" />
+                            </label>
+                            <label class="nocheck clearfix">
+                                <span class="component-title">&nbsp;</span>
+                                <span class="component-desc">Name to display for the third local drive</span>
+                            </label>
+                        </div>
+						</div>
+
+</div>
+                        <input type="submit" class="btn config_submitter" value="Save Changes" />
+                    </fieldset>
+                </div><!-- /component-group1 //-->
+
+            </div><!-- /config-components -->
+		
+</form>
+</div></div>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript" charset="utf-8">
+<!--
+    jQuery('#log_dir').fileBrowser({ title: 'Select Log Directory' });
+    jQuery('#config-components').tabs();
+//-->
+</script>
+
+#include $os.path.join($sickbeard.PROG_DIR,"gui/slick/interfaces/default/inc_bottom.tmpl")

@@ -145,6 +145,14 @@ TRAKT_SYNC = False
 USE_EVENTGHOST = False
 EVENTGHOST_SERVER_HOST = None
 
+USE_DRIVES = None
+USE_DRIVEA = None
+USE_DRIVEB = None
+USE_DRIVEC = None
+DRIVEA_NAME = None
+DRIVEB_NAME = None
+DRIVEC_NAME = None
+
 GUI_NAME = None
 FUZZY_DATING = False
 TRIM_ZERO = False
@@ -176,6 +184,7 @@ def initialize(consoleLogging=True):
             USE_TRAKT, TRAKT_USERNAME, TRAKT_PASSWORD, TRAKT_API, TRAKT_REMOVE_WATCHLIST, TRAKT_USE_WATCHLIST, TRAKT_METHOD_ADD, TRAKT_START_PAUSED, traktCheckerScheduler, TRAKT_USE_RECOMMENDED, TRAKT_SYNC, \
             USE_PLEX, PLEX_NOTIFY_ONSNATCH, PLEX_NOTIFY_ONDOWNLOAD, PLEX_UPDATE_LIBRARY, \
             PLEX_SERVER_HOST, PLEX_HOST, PLEX_USERNAME, PLEX_PASSWORD, SKIP_REMOVED_FILES, \
+            USE_DRIVES, USE_DRIVEA, USE_DRIVEB, USE_DRIVEC, DRIVEA_NAME, DRIVEB_NAME, DRIVEC_NAME, \
             __INITIALIZED__, LAUNCH_BROWSER, \
             INDEXER_DEFAULT, INDEXER_TIMEOUT, \
             PROG_DIR, \
@@ -339,6 +348,14 @@ def initialize(consoleLogging=True):
         USE_PLEX = bool(check_setting_int(CFG, 'Plex', 'use_plex', 0))
         PLEX_SERVER_HOST = check_setting_str(CFG, 'Plex', 'plex_server_host', '')
         PLEX_HOST = check_setting_str(CFG, 'Plex', 'plex_host', '')
+
+        USE_DRIVES = bool(check_setting_int(CFG, 'Drives', 'use_drives', 0))
+        USE_DRIVEA = bool(check_setting_int(CFG, 'Drives', 'use_driveA', 0))
+        USE_DRIVEB = bool(check_setting_int(CFG, 'Drives', 'use_driveB', 0))
+        USE_DRIVEC = bool(check_setting_int(CFG, 'Drives', 'use_driveC', 0))
+        DRIVEA_NAME = check_setting_str(CFG, 'Drives', 'driveA_name', '')
+        DRIVEB_NAME = check_setting_str(CFG, 'Drives', 'driveB_name', '')
+        DRIVEC_NAME = check_setting_str(CFG, 'Drives', 'driveC_name', '')
 
         GIT_PATH = check_setting_str(CFG, 'General', 'git_path', '')
 
@@ -559,6 +576,15 @@ def save_config():
     new_config['EventGhost']['eventghost_plex'] = int(USE_PLEX)
     new_config['EventGhost']['eventghost_server_host'] = PLEX_SERVER_HOST
     new_config['EventGhost']['eventghost_host'] = PLEX_HOST
+
+    new_config['Drives'] = {}
+    new_config['Drives']['use_drives'] = int(USE_DRIVES)
+    new_config['Drives']['use_drivea'] = int(USE_DRIVEA)
+    new_config['Drives']['use_driveb'] = int(USE_DRIVEB)
+    new_config['Drives']['use_drivec'] = int(USE_DRIVEC)
+    new_config['Drives']['driveA_name'] = DRIVEA_NAME
+    new_config['Drives']['driveB_name'] = DRIVEB_NAME
+    new_config['Drives']['driveC_name'] = DRIVEC_NAME
 
     new_config.write()
 
