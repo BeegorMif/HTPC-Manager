@@ -28,6 +28,5 @@ def divWidth():
     for i in free:
         percent = (int(i))
         widthSize = (100 -(int(percent)))
-        print widthSize
         width.append(str(widthSize) + '%')
     return width
