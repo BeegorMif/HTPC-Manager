@@ -40,6 +40,7 @@ from sickbeard import logger, helpers, exceptions, classes
 from sickbeard import encodingKludge as ek
 from sickbeard.sf import getTemps
 from sickbeard.space import getSpace
+from sickbeard.appRunning import WindowExists
 from sickbeard.space import divWidth
 from sickbeard.common import Overview, cpu_presets
 from sickbeard.exceptions import ex
@@ -48,7 +49,8 @@ from browser import WebFileBrowser
 
 from lib.dateutil import tz
 
-from trakt import TraktCall
+from trakt import TraktCall, TraktUserCall
+from sickbeardAPI import SickbeardCall
 
 try:
     import json
@@ -283,9 +285,9 @@ class PageTemplate(Template):
         self.sbPID = str(sickbeard.PID)
         self.menu = [
             {'title': 'Home', 'key': 'home'},
-            {'title': 'Coming Episodes', 'key': 'comingEpisodes'},
+            {'title': 'Sickbeard', 'key': 'sickbeard'},
             {'title': 'History', 'key': 'history'},
-            {'title': 'Manage', 'key': 'manage'},
+            {'title': 'Trakt', 'key': 'trakt'},
             {'title': 'Config', 'key': 'config'},
             {'title': logPageTitle, 'key': 'errorlogs'},
         ]
@@ -322,504 +324,19 @@ class ManageSearches(MainHandler):
         return _munge(t)
 
 
-class Manage(MainHandler):
+class Sickbeard(MainHandler):
     def index(self, *args, **kwargs):
-        t = PageTemplate(headers=self.request.headers, file="manage.tmpl")
+        t = PageTemplate(headers=self.request.headers, file="sickbeard.tmpl")
         t.submenu = ManageMenu()
+        t.history = SickbeardCall("history", sickbeard.SICKBEARD_HOST, sickbeard.SICKBEARD_API)
         return _munge(t)
 
 
-    def showEpisodeStatuses(self, indexer_id, whichStatus):
-        status_list = [int(whichStatus)]
-        if status_list[0] == SNATCHED:
-            status_list = Quality.SNATCHED + Quality.SNATCHED_PROPER
-
-        myDB = db.DBConnection()
-        cur_show_results = myDB.select(
-            "SELECT season, episode, name FROM tv_episodes WHERE showid = ? AND season != 0 AND status IN (" + ','.join(
-                ['?'] * len(status_list)) + ")", [int(indexer_id)] + status_list)
-
-        result = {}
-        for cur_result in cur_show_results:
-            cur_season = int(cur_result["season"])
-            cur_episode = int(cur_result["episode"])
-
-            if cur_season not in result:
-                result[cur_season] = {}
-
-            result[cur_season][cur_episode] = cur_result["name"]
-
-        return json.dumps(result)
-
-
-    def episodeStatuses(self, whichStatus=None):
-
-        if whichStatus:
-            whichStatus = int(whichStatus)
-            status_list = [whichStatus]
-            if status_list[0] == SNATCHED:
-                status_list = Quality.SNATCHED + Quality.SNATCHED_PROPER
-        else:
-            status_list = []
-
-        t = PageTemplate(headers=self.request.headers, file="manage_episodeStatuses.tmpl")
+class Trakt(MainHandler):
+    def index(self, *args, **kwargs):
+        t = PageTemplate(headers=self.request.headers, file="trakt.tmpl")
         t.submenu = ManageMenu()
-        t.whichStatus = whichStatus
-
-        # if we have no status then this is as far as we need to go
-        if not status_list:
-            return _munge(t)
-
-        myDB = db.DBConnection()
-        status_results = myDB.select(
-            "SELECT show_name, tv_shows.indexer_id as indexer_id FROM tv_episodes, tv_shows WHERE tv_episodes.status IN (" + ','.join(
-                ['?'] * len(
-                    status_list)) + ") AND season != 0 AND tv_episodes.showid = tv_shows.indexer_id ORDER BY show_name",
-            status_list)
-
-        ep_counts = {}
-        show_names = {}
-        sorted_show_ids = []
-        for cur_status_result in status_results:
-            cur_indexer_id = int(cur_status_result["indexer_id"])
-            if cur_indexer_id not in ep_counts:
-                ep_counts[cur_indexer_id] = 1
-            else:
-                ep_counts[cur_indexer_id] += 1
-
-            show_names[cur_indexer_id] = cur_status_result["show_name"]
-            if cur_indexer_id not in sorted_show_ids:
-                sorted_show_ids.append(cur_indexer_id)
-
-        t.show_names = show_names
-        t.ep_counts = ep_counts
-        t.sorted_show_ids = sorted_show_ids
-        return _munge(t)
-
-
-    def changeEpisodeStatuses(self, oldStatus, newStatus, *args, **kwargs):
-
-        status_list = [int(oldStatus)]
-        if status_list[0] == SNATCHED:
-            status_list = Quality.SNATCHED + Quality.SNATCHED_PROPER
-
-        to_change = {}
-
-        # make a list of all shows and their associated args
-        for arg in kwargs:
-            indexer_id, what = arg.split('-')
-
-            # we don't care about unchecked checkboxes
-            if kwargs[arg] != 'on':
-                continue
-
-            if indexer_id not in to_change:
-                to_change[indexer_id] = []
-
-            to_change[indexer_id].append(what)
-
-        myDB = db.DBConnection()
-        for cur_indexer_id in to_change:
-
-            # get a list of all the eps we want to change if they just said "all"
-            if 'all' in to_change[cur_indexer_id]:
-                all_eps_results = myDB.select(
-                    "SELECT season, episode FROM tv_episodes WHERE status IN (" + ','.join(
-                        ['?'] * len(status_list)) + ") AND season != 0 AND showid = ?",
-                    status_list + [cur_indexer_id])
-                all_eps = [str(x["season"]) + 'x' + str(x["episode"]) for x in all_eps_results]
-                to_change[cur_indexer_id] = all_eps
-
-            Home(self.application, self.request).setStatus(cur_indexer_id, '|'.join(to_change[cur_indexer_id]),
-                                                           newStatus, direct=True)
-
-        redirect('/manage/episodeStatuses/')
-
-
-    def showSubtitleMissed(self, indexer_id, whichSubs):
-        myDB = db.DBConnection()
-        cur_show_results = myDB.select(
-            "SELECT season, episode, name, subtitles FROM tv_episodes WHERE showid = ? AND season != 0 AND status LIKE '%4'",
-            [int(indexer_id)])
-
-        result = {}
-        for cur_result in cur_show_results:
-            if whichSubs == 'all':
-                if len(set(cur_result["subtitles"].split(',')).intersection(set(subtitles.wantedLanguages()))) >= len(
-                        subtitles.wantedLanguages()):
-                    continue
-            elif whichSubs in cur_result["subtitles"].split(','):
-                continue
-
-            cur_season = int(cur_result["season"])
-            cur_episode = int(cur_result["episode"])
-
-            if cur_season not in result:
-                result[cur_season] = {}
-
-            if cur_episode not in result[cur_season]:
-                result[cur_season][cur_episode] = {}
-
-            result[cur_season][cur_episode]["name"] = cur_result["name"]
-
-            result[cur_season][cur_episode]["subtitles"] = ",".join(
-                subliminal.language.Language(subtitle).alpha2 for subtitle in cur_result["subtitles"].split(',')) if not \
-                cur_result["subtitles"] == '' else ''
-
-        return json.dumps(result)
-
-
-    def subtitleMissed(self, whichSubs=None):
-
-        t = PageTemplate(headers=self.request.headers, file="manage_subtitleMissed.tmpl")
-        t.submenu = ManageMenu()
-        t.whichSubs = whichSubs
-
-        if not whichSubs:
-            return _munge(t)
-
-        myDB = db.DBConnection()
-        status_results = myDB.select(
-            "SELECT show_name, tv_shows.indexer_id as indexer_id, tv_episodes.subtitles subtitles FROM tv_episodes, tv_shows WHERE tv_shows.subtitles = 1 AND tv_episodes.status LIKE '%4' AND tv_episodes.season != 0 AND tv_episodes.showid = tv_shows.indexer_id ORDER BY show_name")
-
-        ep_counts = {}
-        show_names = {}
-        sorted_show_ids = []
-        for cur_status_result in status_results:
-            if whichSubs == 'all':
-                if len(set(cur_status_result["subtitles"].split(',')).intersection(
-                        set(subtitles.wantedLanguages()))) >= len(subtitles.wantedLanguages()):
-                    continue
-            elif whichSubs in cur_status_result["subtitles"].split(','):
-                continue
-
-            cur_indexer_id = int(cur_status_result["indexer_id"])
-            if cur_indexer_id not in ep_counts:
-                ep_counts[cur_indexer_id] = 1
-            else:
-                ep_counts[cur_indexer_id] += 1
-
-            show_names[cur_indexer_id] = cur_status_result["show_name"]
-            if cur_indexer_id not in sorted_show_ids:
-                sorted_show_ids.append(cur_indexer_id)
-
-        t.show_names = show_names
-        t.ep_counts = ep_counts
-        t.sorted_show_ids = sorted_show_ids
-        return _munge(t)
-
-
-    def downloadSubtitleMissed(self, *args, **kwargs):
-
-        to_download = {}
-
-        # make a list of all shows and their associated args
-        for arg in kwargs:
-            indexer_id, what = arg.split('-')
-
-            # we don't care about unchecked checkboxes
-            if kwargs[arg] != 'on':
-                continue
-
-            if indexer_id not in to_download:
-                to_download[indexer_id] = []
-
-            to_download[indexer_id].append(what)
-
-        for cur_indexer_id in to_download:
-            # get a list of all the eps we want to download subtitles if they just said "all"
-            if 'all' in to_download[cur_indexer_id]:
-                myDB = db.DBConnection()
-                all_eps_results = myDB.select(
-                    "SELECT season, episode FROM tv_episodes WHERE status LIKE '%4' AND season != 0 AND showid = ?",
-                    [cur_indexer_id])
-                to_download[cur_indexer_id] = [str(x["season"]) + 'x' + str(x["episode"]) for x in all_eps_results]
-
-            for epResult in to_download[cur_indexer_id]:
-                season, episode = epResult.split('x')
-
-                show = sickbeard.helpers.findCertainShow(sickbeard.showList, int(cur_indexer_id))
-                subtitles = show.getEpisode(int(season), int(episode)).downloadSubtitles()
-
-        redirect('/manage/subtitleMissed/')
-
-
-    def backlogShow(self, indexer_id):
-
-        show_obj = helpers.findCertainShow(sickbeard.showList, int(indexer_id))
-
-        if show_obj:
-            sickbeard.backlogSearchScheduler.action.searchBacklog([show_obj])  # @UndefinedVariable
-
-        redirect("/manage/backlogOverview/")
-
-
-    def backlogOverview(self, *args, **kwargs):
-
-        t = PageTemplate(headers=self.request.headers, file="manage_backlogOverview.tmpl")
-        t.submenu = ManageMenu()
-
-        showCounts = {}
-        showCats = {}
-        showSQLResults = {}
-
-        myDB = db.DBConnection()
-        for curShow in sickbeard.showList:
-
-            epCounts = {}
-            epCats = {}
-            epCounts[Overview.SKIPPED] = 0
-            epCounts[Overview.WANTED] = 0
-            epCounts[Overview.QUAL] = 0
-            epCounts[Overview.GOOD] = 0
-            epCounts[Overview.UNAIRED] = 0
-            epCounts[Overview.SNATCHED] = 0
-
-            sqlResults = myDB.select(
-                "SELECT * FROM tv_episodes WHERE showid = ? ORDER BY season DESC, episode DESC",
-                [curShow.indexerid])
-
-            for curResult in sqlResults:
-                curEpCat = curShow.getOverview(int(curResult["status"]))
-                if curEpCat:
-                    epCats[str(curResult["season"]) + "x" + str(curResult["episode"])] = curEpCat
-                    epCounts[curEpCat] += 1
-
-            showCounts[curShow.indexerid] = epCounts
-            showCats[curShow.indexerid] = epCats
-            showSQLResults[curShow.indexerid] = sqlResults
-
-        t.showCounts = showCounts
-        t.showCats = showCats
-        t.showSQLResults = showSQLResults
-
-        return _munge(t)
-
-
-    def massEdit(self, toEdit=None):
-
-        t = PageTemplate(headers=self.request.headers, file="manage_massEdit.tmpl")
-        t.submenu = ManageMenu()
-
-        if not toEdit:
-            redirect("/manage/")
-
-        showIDs = toEdit.split("|")
-        showList = []
-        for curID in showIDs:
-            curID = int(curID)
-            showObj = helpers.findCertainShow(sickbeard.showList, curID)
-            if showObj:
-                showList.append(showObj)
-
-        flatten_folders_all_same = True
-        last_flatten_folders = None
-
-        paused_all_same = True
-        last_paused = None
-
-        anime_all_same = True
-        last_anime = None
-
-        quality_all_same = True
-        last_quality = None
-
-        subtitles_all_same = True
-        last_subtitles = None
-
-        scene_all_same = True
-        last_scene = None
-
-        root_dir_list = []
-
-        for curShow in showList:
-
-            cur_root_dir = ek.ek(os.path.dirname, curShow._location)
-            if cur_root_dir not in root_dir_list:
-                root_dir_list.append(cur_root_dir)
-
-            # if we know they're not all the same then no point even bothering
-            if paused_all_same:
-                # if we had a value already and this value is different then they're not all the same
-                if last_paused not in (curShow.paused, None):
-                    paused_all_same = False
-                else:
-                    last_paused = curShow.paused
-
-            if anime_all_same:
-                # if we had a value already and this value is different then they're not all the same
-                if last_anime not in (curShow.is_anime, None):
-                    anime_all_same = False
-                else:
-                    last_anime = curShow.is_anime
-
-            if flatten_folders_all_same:
-                if last_flatten_folders not in (None, curShow.flatten_folders):
-                    flatten_folders_all_same = False
-                else:
-                    last_flatten_folders = curShow.flatten_folders
-
-            if quality_all_same:
-                if last_quality not in (None, curShow.quality):
-                    quality_all_same = False
-                else:
-                    last_quality = curShow.quality
-
-            if subtitles_all_same:
-                if last_subtitles not in (None, curShow.subtitles):
-                    subtitles_all_same = False
-                else:
-                    last_subtitles = curShow.subtitles
-
-            if scene_all_same:
-                if last_scene not in (None, curShow.scene):
-                    scene_all_same = False
-                else:
-                    last_scene = curShow.scene
-
-        t.showList = toEdit
-        t.paused_value = last_paused if paused_all_same else None
-        t.anime_value = last_anime if anime_all_same else None
-        t.flatten_folders_value = last_flatten_folders if flatten_folders_all_same else None
-        t.quality_value = last_quality if quality_all_same else None
-        t.subtitles_value = last_subtitles if subtitles_all_same else None
-        t.scene_value = last_scene if scene_all_same else None
-        t.root_dir_list = root_dir_list
-
-        return _munge(t)
-
-
-    def massEditSubmit(self, paused=None, anime=None, scene=None, flatten_folders=None, quality_preset=False,
-                       subtitles=None,
-                       anyQualities=[], bestQualities=[], toEdit=None, *args, **kwargs):
-
-        dir_map = {}
-        for cur_arg in kwargs:
-            if not cur_arg.startswith('orig_root_dir_'):
-                continue
-            which_index = cur_arg.replace('orig_root_dir_', '')
-            end_dir = kwargs['new_root_dir_' + which_index]
-            dir_map[kwargs[cur_arg]] = end_dir
-
-        showIDs = toEdit.split("|")
-        errors = []
-        for curShow in showIDs:
-            curErrors = []
-            showObj = helpers.findCertainShow(sickbeard.showList, int(curShow))
-            if not showObj:
-                continue
-
-            cur_root_dir = ek.ek(os.path.dirname, showObj._location)
-            cur_show_dir = ek.ek(os.path.basename, showObj._location)
-            if cur_root_dir in dir_map and cur_root_dir != dir_map[cur_root_dir]:
-                new_show_dir = ek.ek(os.path.join, dir_map[cur_root_dir], cur_show_dir)
-                logger.log(
-                    u"For show " + showObj.name + " changing dir from " + showObj._location + " to " + new_show_dir)
-            else:
-                new_show_dir = showObj._location
-
-            if paused == 'keep':
-                new_paused = showObj.paused
-            else:
-                new_paused = True if paused == 'enable' else False
-            new_paused = 'on' if new_paused else 'off'
-
-            if anime == 'keep':
-                new_anime = showObj.is_anime
-            else:
-                new_anime = True if anime == 'enable' else False
-            new_anime = 'on' if new_anime else 'off'
-
-            if scene == 'keep':
-                new_scene = showObj.is_scene
-            else:
-                new_scene = True if scene == 'enable' else False
-            new_scene = 'on' if new_scene else 'off'
-
-            if flatten_folders == 'keep':
-                new_flatten_folders = showObj.flatten_folders
-            else:
-                new_flatten_folders = True if flatten_folders == 'enable' else False
-            new_flatten_folders = 'on' if new_flatten_folders else 'off'
-
-            if subtitles == 'keep':
-                new_subtitles = showObj.subtitles
-            else:
-                new_subtitles = True if subtitles == 'enable' else False
-
-            new_subtitles = 'on' if new_subtitles else 'off'
-
-            if quality_preset == 'keep':
-                anyQualities, bestQualities = Quality.splitQuality(showObj.quality)
-
-            exceptions_list = []
-
-            curErrors += Home(self.application, self.request).editShow(curShow, new_show_dir, anyQualities,
-                                                                       bestQualities, exceptions_list,
-                                                                       new_flatten_folders, new_paused,
-                                                                       subtitles=new_subtitles, anime=new_anime,
-                                                                       scene=new_scene, directCall=True)
-
-            if curErrors:
-                logger.log(u"Errors: " + str(curErrors), logger.ERROR)
-                errors.append('<b>%s:</b>\n<ul>' % showObj.name + ' '.join(
-                    ['<li>%s</li>' % error for error in curErrors]) + "</ul>")
-
-        if len(errors) > 0:
-            ui.notifications.error('%d error%s while saving changes:' % (len(errors), "" if len(errors) == 1 else "s"),
-                                   " ".join(errors))
-
-        redirect("/manage/")
-
-
-    def manageTorrents(self, *args, **kwargs):
-
-        t = PageTemplate(headers=self.request.headers, file="manage_torrents.tmpl")
-        t.info_download_station = ''
-        t.submenu = ManageMenu()
-
-        if re.search('localhost', sickbeard.TORRENT_HOST):
-
-            if sickbeard.LOCALHOST_IP == '':
-                t.webui_url = re.sub('localhost', helpers.get_lan_ip(), sickbeard.TORRENT_HOST)
-            else:
-                t.webui_url = re.sub('localhost', sickbeard.LOCALHOST_IP, sickbeard.TORRENT_HOST)
-        else:
-            t.webui_url = sickbeard.TORRENT_HOST
-
-        if sickbeard.TORRENT_METHOD == 'utorrent':
-            t.webui_url = '/'.join(s.strip('/') for s in (t.webui_url, 'gui/'))
-        if sickbeard.TORRENT_METHOD == 'download_station':
-            if helpers.check_url(t.webui_url + 'download/'):
-                t.webui_url = t.webui_url + 'download/'
-            else:
-                t.info_download_station = '<p>To have a better experience please set the Download Station alias as <code>download</code>, you can check this setting in the Synology DSM <b>Control Panel</b> > <b>Application Portal</b>. Make sure you allow DSM to be embedded with iFrames too in <b>Control Panel</b> > <b>DSM Settings</b> > <b>Security</b>.</p><br/><p>There is more information about this available <a href="https://github.com/midgetspy/Sick-Beard/pull/338">here</a>.</p><br/>'
-
-        return _munge(t)
-
-
-    def failedDownloads(self, limit=100, toRemove=None):
-
-        myDB = db.DBConnection('failed.db')
-
-        if limit == "0":
-            sqlResults = myDB.select("SELECT * FROM failed")
-        else:
-            sqlResults = myDB.select("SELECT * FROM failed LIMIT ?", [limit])
-
-        toRemove = toRemove.split("|") if toRemove is not None else []
-
-        for release in toRemove:
-            myDB.action('DELETE FROM failed WHERE release = ?', [release])
-
-        if toRemove:
-            redirect('/manage/failedDownloads/')
-
-        t = PageTemplate(headers=self.request.headers, file="manage_failedDownloads.tmpl")
-        t.failedResults = sqlResults
-        t.limit = limit
-        t.submenu = ManageMenu()
-
+        t.comingUp = TraktUserCall("user/calendar/shows.json/%API%/%USERNAME%/", sickbeard.TRAKT_API, sickbeard.TRAKT_USERNAME)
         return _munge(t)
 
 
@@ -924,6 +441,7 @@ ConfigMenu = [
     {'title': 'Notifications', 'path': 'config/notifications/'},
     {'title': 'Anime', 'path': 'config/anime/'},
     {'title': 'Drives', 'path': 'config/drives/'},
+    {'title': 'Sickbeard', 'path': 'config/sb/'},
 ]
 
 
@@ -1793,8 +1311,8 @@ class ConfigDrives(MainHandler):
 
 
     def saveDrives(self, use_drives=None, use_driveA=None, use_driveB=None, use_driveC=None, \
-                  driveA_name=None, driveB_name=None, driveC_name=None,
-                  split_home=None):
+                  driveA_name=None, driveB_name=None, driveC_name=None,use_sickbeard=False, \
+                  sickbeard_host=None, sickbeard_api=None):
 
         results = []
 
@@ -1807,16 +1325,21 @@ class ConfigDrives(MainHandler):
             use_driveA = 1
         else:
             use_driveA = 0
-			
+
         if use_driveB == "on":
             use_driveB = 1
         else:
             use_driveB = 0
-			
+
         if use_driveC == "on":
             use_driveC = 1
         else:
             use_driveC = 0
+
+        if use_sickbeard == "on":
+            use_sickbeard = 1
+        else:
+            use_sickbeard = 0
 
 
         sickbeard.USE_DRIVES = use_drives
@@ -1826,6 +1349,10 @@ class ConfigDrives(MainHandler):
         sickbeard.DRIVEA_NAME = driveA_name
         sickbeard.DRIVEB_NAME = driveB_name
         sickbeard.DRIVEC_NAME = driveC_name
+
+        sickbeard.USE_SICKBEARD = use_sickbeard
+        sickbeard.SICKBEARD_HOST = sickbeard_host
+        sickbeard.SICKBEARD_API = sickbeard_api
 
         sickbeard.save_config()
 
@@ -2139,6 +1666,7 @@ class NewHomeAddShows(MainHandler):
         t.submenu = HomeMenu()
 
         t.trending_shows = TraktCall("shows/trending.json/%API%/", sickbeard.TRAKT_API_KEY)
+        
 
         return _munge(t)
 
@@ -2466,6 +1994,7 @@ class Home(MainHandler):
         t.temps = getTemps()
         t.space = getSpace()
         t.width = divWidth()
+        t.plexOpen = WindowExists("calcFrame")
         return _munge(t)
 
     def testBoxcar2(self, accesstoken=None):

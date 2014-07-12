@@ -153,6 +153,10 @@ DRIVEA_NAME = None
 DRIVEB_NAME = None
 DRIVEC_NAME = None
 
+USE_SICKBEARD = False
+SICKBEARD_HOST = None
+SICKBEARD_API = None
+
 GUI_NAME = None
 FUZZY_DATING = False
 TRIM_ZERO = False
@@ -197,7 +201,8 @@ def initialize(consoleLogging=True):
             GIT_PATH, MOVE_ASSOCIATED_FILES, CLEAR_CACHE, NFO_RENAME, \
             GUI_NAME, FUZZY_DATING, TRIM_ZERO, DATE_PRESET, TIME_PRESET, TIME_PRESET_W_SECONDS, \
             ANON_REDIRECT, LOCALHOST_IP, TMDB_API_KEY, DEBUG, PROXY_SETTING, \
-            DEFAULT_AUTOPOSTPROCESSER_FREQUENCY, MIN_AUTOPOSTPROCESSER_FREQUENCY
+            DEFAULT_AUTOPOSTPROCESSER_FREQUENCY, MIN_AUTOPOSTPROCESSER_FREQUENCY, \
+            USE_SICKBEARD, SICKBEARD_API, SICKBEARD_HOST
 
         if __INITIALIZED__:
             return False
@@ -356,6 +361,10 @@ def initialize(consoleLogging=True):
         DRIVEA_NAME = check_setting_str(CFG, 'Drives', 'driveA_name', '')
         DRIVEB_NAME = check_setting_str(CFG, 'Drives', 'driveB_name', '')
         DRIVEC_NAME = check_setting_str(CFG, 'Drives', 'driveC_name', '')
+
+        USE_SICKBEARD = bool(check_setting_int(CFG, 'Sickbeard', 'use_sickbeard', 0))
+        SICKBEARD_HOST = check_setting_str(CFG, 'Sickbeard', 'sickbeard_host', '')
+        SICKBEARD_API = check_setting_str(CFG, 'Sickbeard', 'sickbeard_api', '')
 
         GIT_PATH = check_setting_str(CFG, 'General', 'git_path', '')
 
@@ -585,6 +594,11 @@ def save_config():
     new_config['Drives']['driveA_name'] = DRIVEA_NAME
     new_config['Drives']['driveB_name'] = DRIVEB_NAME
     new_config['Drives']['driveC_name'] = DRIVEC_NAME
+
+    new_config['Sickbeard'] = {}
+    new_config['Sickbeard']['use_sickbeard'] = int(USE_SICKBEARD)
+    new_config['Sickbeard']['sickbeard_host'] = SICKBEARD_HOST
+    new_config['Sickbeard']['sickbeard_api'] = SICKBEARD_API
 
     new_config.write()
 
