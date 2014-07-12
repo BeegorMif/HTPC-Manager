@@ -5,8 +5,8 @@
 #from sickbeard.common import *
 #from sickbeard.sbdatetime import *
 #from sickbeard import config
-#set global $title  = "Config - Drives"
-#set global $header = "Drive Configuration"
+#set global $title  = "Config - Extras"
+#set global $header = "Extra Software"
 
 #set global $sbPath="../.."
 
@@ -28,6 +28,7 @@
 				
 				<ul>
 					<li><a href="#core-component-group1">Drives</a></li>
+					<li><a href="#core-component-group2">Sickbeard</a></li>
 				</ul>
 				
                 <div id="core-component-group1" class="component-group clearfix">
@@ -109,6 +110,47 @@
                         <input type="submit" class="btn config_submitter" value="Save Changes" />
                     </fieldset>
                 </div><!-- /component-group1 //-->
+				
+                <div id="core-component-group2" class="component-group clearfix">
+					
+                    <div class="component-group-desc">
+                        <h3>Sickbeard</h3>
+                        <p>Sickbeard API Setup</p>
+                    </div>
+
+                    <fieldset class="component-group-list" style="width:670px">
+                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_sickbeard" id="use_sickbeard" #if $sickbeard.USE_SICKBEARD then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_sickbeard">
+                                <span class="component-title">Enable</span>
+                                <span class="component-desc">Should HTPC Manager use the Sickbeard API?</span>
+                            </label>
+                        </div>
+
+<div id="content_use_sickbeard">
+                        <div class="field-pair">
+                            <label class="nocheck clearfix">
+                                <span class="component-title">Sickbeard Host</span>
+                                <input type="text" name="sickbeard_host" id="sickbeard_host" value="$sickbeard.SICKBEARD_HOST" size="25" />
+                            </label>
+                            <label class="nocheck clearfix">
+                                <span class="component-title">&nbsp;</span>
+                                <span class="component-desc">e.g http://ip:port</span>
+                            </label>
+                        </div>
+                        <div class="field-pair">
+                            <label class="nocheck clearfix">
+                                <span class="component-title">Sickbeard API</span>
+                                <input type="text" name="sickbeard_api" id="sickbeard_api" value="$sickbeard.SICKBEARD_API" size="30" />
+                            </label>
+                            <label class="nocheck clearfix">
+                                <span class="component-title">&nbsp;</span>
+                            </label>
+                        </div>
+</div>
+                        <input type="submit" class="btn config_submitter" value="Save Changes" />
+                    </fieldset>
+                </div><!-- /component-group2 //-->
 
             </div><!-- /config-components -->
 		
