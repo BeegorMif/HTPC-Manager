@@ -1,0 +1,66 @@
+#import sickbeard
+#import datetime
+#from sickbeard.common import *
+#from sickbeard import sbdatetime
+
+#set global $title="SickBeard"
+#set global $header="SickBeard History"
+
+#set global $sbPath=".."
+
+#set global $topmenu="comingEpisodes"
+#import os.path
+#include $os.path.join($sickbeard.PROG_DIR, "gui/slick/interfaces/default/inc_top.tmpl")
+<script type="text/javascript" src="$sbRoot/js/moment.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/sickbeard.js?$sbPID"></script>
+#if $varExists('header') 
+	<h1 class="header">$header</h1>
+#else 
+	<h1 class="title">$title</h1>
+#end if
+
+<style type="text/css">
+.sort_data {display:none}
+</style>
+<script>
+var b = '2014-07-12 17:14'
+var temp = new Array();
+temp = b.replace(':','-').replace(' ','-').split('-');
+console.log(moment(temp, "YYYY-MM-DD HH:mm Z").fromNow());
+</script>
+
+<script>
+
+</script>
+#if $history.result == "success":
+<table class="table table-striped table-bordered">
+<th>Time</th><th>Show</th><th>Episode</th><th>Action</th>
+#for $i, $index in enumerate($history.data):
+<tr>
+<td>
+<span id="$i"></span></td><td>$history.data[$i].show_name</td>
+<td>Season $history.data[$i].season - Episode $history.data[$i].episode</td>
+<td>$history.data[$i].status</td>
+
+</tr>
+
+
+<script>
+var c = "$history.data[$i].date"
+aired = c.replace(':','-').replace(' ','-').split('-');
+fuzzyAirdate = (moment(aired, "YYYY-MM-DD HH:mm Z").fromNow());
+var div = document.getElementById('$i');
+div.innerHTML += fuzzyAirdate;
+</script>
+#end for
+</table>
+#else:
+<span>Can't connect to the SickBeard API, is it running?</span>
+#end if
+<script type="text/javascript" charset="utf-8">
+<!--
+window.setInterval( "location.reload(true)", 600000); // Refresh every 10 minutes
+//-->
+</script>
+
+#include $os.path.join($sickbeard.PROG_DIR, "gui/slick/interfaces/default/inc_bottom.tmpl")
