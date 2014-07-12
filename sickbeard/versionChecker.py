@@ -122,7 +122,7 @@ class UpdateManager():
         return 'BeegorMif'
 
     def get_github_repo(self):
-        return 'SickRage'
+        return 'HTPC-Manager'
 
     def get_update_url(self):
         return sickbeard.WEB_ROOT + "/home/update/?pid=" + str(sickbeard.PID)
