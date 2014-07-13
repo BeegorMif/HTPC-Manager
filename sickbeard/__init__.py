@@ -157,6 +157,9 @@ USE_SICKBEARD = False
 SICKBEARD_HOST = None
 SICKBEARD_API = None
 
+USE_SPEEDFAN = False
+SPEEDFAN_LOG_LOCATION = None
+
 GUI_NAME = None
 FUZZY_DATING = False
 TRIM_ZERO = False
@@ -189,6 +192,7 @@ def initialize(consoleLogging=True):
             USE_PLEX, PLEX_NOTIFY_ONSNATCH, PLEX_NOTIFY_ONDOWNLOAD, PLEX_UPDATE_LIBRARY, \
             PLEX_SERVER_HOST, PLEX_HOST, PLEX_USERNAME, PLEX_PASSWORD, SKIP_REMOVED_FILES, \
             USE_DRIVES, USE_DRIVEA, USE_DRIVEB, USE_DRIVEC, DRIVEA_NAME, DRIVEB_NAME, DRIVEC_NAME, \
+            USE_SPEEDFAN, SPEEDFAN_LOG_LOCATION, \
             __INITIALIZED__, LAUNCH_BROWSER, \
             INDEXER_DEFAULT, INDEXER_TIMEOUT, \
             PROG_DIR, \
@@ -365,6 +369,9 @@ def initialize(consoleLogging=True):
         USE_SICKBEARD = bool(check_setting_int(CFG, 'Sickbeard', 'use_sickbeard', 0))
         SICKBEARD_HOST = check_setting_str(CFG, 'Sickbeard', 'sickbeard_host', '')
         SICKBEARD_API = check_setting_str(CFG, 'Sickbeard', 'sickbeard_api', '')
+
+        USE_SPEEDFAN = bool(check_setting_int(CFG, 'Speedfan', 'use_speedfan', 0))
+        SPEEDFAN_LOG_LOCATION = check_setting_str(CFG, 'Speedfan', 'speedfan_log_location', '')
 
         GIT_PATH = check_setting_str(CFG, 'General', 'git_path', '')
 
@@ -599,6 +606,10 @@ def save_config():
     new_config['Sickbeard']['use_sickbeard'] = int(USE_SICKBEARD)
     new_config['Sickbeard']['sickbeard_host'] = SICKBEARD_HOST
     new_config['Sickbeard']['sickbeard_api'] = SICKBEARD_API
+
+    new_config['Speedfan'] = {}
+    new_config['Speedfan']['use_speedfan'] = int(USE_SPEEDFAN)
+    new_config['Speedfan']['speedfan_log_location'] = SPEEDFAN_LOG_LOCATION
 
     new_config.write()
 

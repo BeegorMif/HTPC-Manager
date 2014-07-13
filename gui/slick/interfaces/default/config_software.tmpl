@@ -30,6 +30,7 @@
 					<li><a href="#core-component-group1">Drives</a></li>
 					<li><a href="#core-component-group2">Sickbeard</a></li>
 					<li><a href="#core-component-group3">Eventghost</a></li>
+					<li><a href="#core-component-group4">SpeedFan</a></li>
 				</ul>
 				
                 <div id="core-component-group1" class="component-group clearfix">
@@ -185,6 +186,36 @@
                     </fieldset>
                     </div><!-- component-group3 -->
 
+
+
+                <div id="core-component-group4" class="component-group clearfix">
+                    <div class="component-group-desc">
+                        <h3><a href="http://www.almico.com/speedfan.php" rel="noreferrer" onclick="window.open('${sickbeard.ANON_REDIRECT}' + this.href, '_blank'); return false;"><img src="$sbRoot/images/speedfan.png" style="width:29px" alt="" title="EventGhost"/> SpeedFan </a></h3>
+                        <p>Access SpeedFan logs to display temps?</p>
+                    </div>
+                    <fieldset class="component-group-list">
+                        <div class="field-pair">
+                            <input type="checkbox" class="enabler" name="use_speedfan" id="use_speedfan" #if $sickbeard.USE_SPEEDFAN then "checked=\"checked\"" else ""# />
+                            <label class="clearfix" for="use_speedfan">
+                                <span class="component-title">Enable</span>
+                                <span class="component-desc">Enable Temp/Fan Speed Display?<span>
+                            </label>
+                        </div>
+                        <div id="content_use_eventghost">
+                            <div class="field-pair">
+                                <label class="nocheck clearfix">
+                                    <span class="component-title">Log location</span>
+                                    <input type="text" name="speedfan_log_location" id="speedfan_log_location" value="$sickbeard.SPEEDFAN_LOG_LOCATION" size="35" />
+                                </label>
+                                <label class="nocheck clearfix">
+                                    <span class="component-title">&nbsp;</span>
+                                    <span class="component-desc">Location of SpeedFan logs</span>
+                                </label>
+                            </div>
+                            <input type="submit" class="config_submitter btn" value="Save Changes" />
+                        </div><!-- /content_use_eventghost -->
+                    </fieldset>
+                    </div><!-- component-group4 -->
             </div><!-- /config-components -->
                     <input type="submit" class="btn config_submitter" value="Save Changes" />
 </form>
@@ -194,7 +225,7 @@
 
 <script type="text/javascript" charset="utf-8">
 <!--
-    jQuery('#log_dir').fileBrowser({ title: 'Select Log Directory' });
+    jQuery('#speedfan_log_location').fileBrowser({ title: 'Select Log Directory' });
     jQuery('#config-components').tabs();
 //-->
 </script>

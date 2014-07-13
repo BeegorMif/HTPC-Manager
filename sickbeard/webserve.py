@@ -1310,8 +1310,8 @@ class ConfigSoftware(MainHandler):
     def saveSoftware(self, use_drives=None, use_driveA=None, use_driveB=None, use_driveC=None, \
                   driveA_name=None, driveB_name=None, driveC_name=None,use_sickbeard=False, \
                   sickbeard_host=None, sickbeard_api=None, use_eventghost=None, eventghost_server_host=None, \
-                  
-                  ):
+                  use_speedfan=False, speedfan_log_location=None
+                    ):
 
         results = []
 
@@ -1340,6 +1340,16 @@ class ConfigSoftware(MainHandler):
         else:
             use_sickbeard = 0
 
+        if use_eventghost == "on":
+            use_eventghost = 1
+        else:
+            use_eventghost = 0
+
+        if use_speedfan == "on":
+            use_speedfan = 1
+        else:
+            use_speedfan = 0
+
 
         sickbeard.USE_DRIVES = use_drives
         sickbeard.USE_DRIVEA = use_driveA
@@ -1355,6 +1365,8 @@ class ConfigSoftware(MainHandler):
 
         sickbeard.USE_EVENTGHOST = config.checkbox_to_value(use_eventghost)
         sickbeard.EVENTGHOST_SERVER_HOST = config.clean_host(eventghost_server_host)
+
+        sickbeard.SPEEDFAN_LOG_LOCATION = speedfan_log_location
 
         sickbeard.save_config()
 
