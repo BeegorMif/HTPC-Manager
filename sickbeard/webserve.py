@@ -1994,7 +1994,8 @@ class Home(MainHandler):
         t.temps = getTemps()
         t.space = getSpace()
         t.width = divWidth()
-        t.plexOpen = WindowExists("calcFrame")
+        t.plexOpen = WindowExists("Plex Home Theater")
+        t.watching = TraktUserCall("user/watching.json/%API%/%USERNAME%/", sickbeard.TRAKT_API, sickbeard.TRAKT_USERNAME)
         return _munge(t)
 
     def testBoxcar2(self, accesstoken=None):
