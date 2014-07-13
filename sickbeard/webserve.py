@@ -437,11 +437,9 @@ ConfigMenu = [
     {'title': 'Search Settings', 'path': 'config/search/'},
     {'title': 'Search Providers', 'path': 'config/providers/'},
     {'title': 'Subtitles Settings', 'path': 'config/subtitles/'},
-    {'title': 'EventGhost', 'path': 'config/eventghost/'},
     {'title': 'Notifications', 'path': 'config/notifications/'},
     {'title': 'Anime', 'path': 'config/anime/'},
-    {'title': 'Drives', 'path': 'config/drives/'},
-    {'title': 'Sickbeard', 'path': 'config/sb/'},
+    {'title': 'Software', 'path': 'config/software/'},
 ]
 
 
@@ -1182,12 +1180,11 @@ class ConfigEventghost(MainHandler):
         return _munge(t)
 
 
-    def saveEventghost(self, use_eventghost=None, eventghost_server_host=None):
+    def saveEventghost(self):
 
         results = []
 
-        sickbeard.USE_EVENTGHOST = config.checkbox_to_value(use_eventghost)
-        sickbeard.EVENTGHOST_SERVER_HOST = config.clean_host(eventghost_server_host)
+
 
         sickbeard.save_config()
 
@@ -1302,17 +1299,19 @@ class ConfigAnime(MainHandler):
             ui.notifications.message('Configuration Saved', ek.ek(os.path.join, sickbeard.CONFIG_FILE))
 
 
-class ConfigDrives(MainHandler):
+class ConfigSoftware(MainHandler):
     def index(self, *args, **kwargs):
 
-        t = PageTemplate(headers=self.request.headers, file="config_drives.tmpl")
+        t = PageTemplate(headers=self.request.headers, file="config_software.tmpl")
         t.submenu = ConfigMenu
         return _munge(t)
 
 
-    def saveDrives(self, use_drives=None, use_driveA=None, use_driveB=None, use_driveC=None, \
+    def saveSoftware(self, use_drives=None, use_driveA=None, use_driveB=None, use_driveC=None, \
                   driveA_name=None, driveB_name=None, driveC_name=None,use_sickbeard=False, \
-                  sickbeard_host=None, sickbeard_api=None):
+                  sickbeard_host=None, sickbeard_api=None, use_eventghost=None, eventghost_server_host=None, \
+                  
+                  ):
 
         results = []
 
@@ -1354,6 +1353,9 @@ class ConfigDrives(MainHandler):
         sickbeard.SICKBEARD_HOST = sickbeard_host
         sickbeard.SICKBEARD_API = sickbeard_api
 
+        sickbeard.USE_EVENTGHOST = config.checkbox_to_value(use_eventghost)
+        sickbeard.EVENTGHOST_SERVER_HOST = config.clean_host(eventghost_server_host)
+
         sickbeard.save_config()
 
         if len(results) > 0:
@@ -1381,8 +1383,7 @@ class Config(MainHandler):
     postProcessing = ConfigPostProcessing
     notifications = ConfigNotifications
     anime = ConfigAnime
-    eventghost = ConfigEventghost
-    drives = ConfigDrives
+    software = ConfigSoftware
 
 
 def haveXBMC():
