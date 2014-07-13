@@ -55,7 +55,6 @@ from sickbeard.exceptions import MultipleShowObjectsException, EpisodeNotFoundBy
 from sickbeard import logger, classes
 from sickbeard.common import USER_AGENT, mediaExtensions, subtitleExtensions, XML_NSMAP
 from sickbeard import encodingKludge as ek
-from sickbeard import notifiers
 
 urllib._urlopener = classes.SickBeardURLopener()
 
@@ -276,8 +275,6 @@ def makeDir(path):
     if not ek.ek(os.path.isdir, path):
         try:
             ek.ek(os.makedirs, path)
-            # do the library update for synoindex
-            notifiers.synoindex_notifier.addFolder(path)
         except OSError:
             return False
     return True
@@ -454,8 +451,6 @@ def make_dirs(path):
                     ek.ek(os.mkdir, sofar)
                     # use normpath to remove end separator, otherwise checks permissions against itself
                     chmodAsParent(ek.ek(os.path.normpath, sofar))
-                    # do the library update for synoindex
-                    notifiers.synoindex_notifier.addFolder(sofar)
                 except (OSError, IOError), e:
                     logger.log(u"Failed creating " + sofar + " : " + ex(e), logger.ERROR)
                     return False
@@ -537,8 +532,6 @@ def delete_empty_folders(check_empty_dir, keep_dir=None):
                 logger.log(u"Deleting empty folder: " + check_empty_dir)
                 # need shutil.rmtree when ignore_items is really implemented
                 ek.ek(os.rmdir, check_empty_dir)
-                # do the library update for synoindex
-                notifiers.synoindex_notifier.deleteFolder(check_empty_dir)
             except OSError, e:
                 logger.log(u"Unable to delete " + check_empty_dir + ": " + repr(e) + " / " + str(e), logger.WARNING)
                 break
