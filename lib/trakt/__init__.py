@@ -49,9 +49,10 @@ def TraktCall(method, api, username=None, password=None, data={}):
         if ("error" in resp):
             raise Exception(resp["error"])
 
-    except (IOError):
-        #logger.log("trakt: Failed calling method", logger.ERROR)
-        return None
+    except:
+        failMSG = {"type":"failed"}
+		#logger.log("trakt: Failed calling method", logger.ERROR)
+        return failMSG
 
     #logger.log("trakt: Failed calling method", logger.ERROR)
     return resp

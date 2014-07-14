@@ -595,9 +595,9 @@ def save_config():
 
     new_config['Drives'] = {}
     new_config['Drives']['use_drives'] = int(USE_DRIVES)
-    new_config['Drives']['use_drivea'] = int(USE_DRIVEA)
-    new_config['Drives']['use_driveb'] = int(USE_DRIVEB)
-    new_config['Drives']['use_drivec'] = int(USE_DRIVEC)
+    new_config['Drives']['use_driveA'] = int(USE_DRIVEA)
+    new_config['Drives']['use_driveB'] = int(USE_DRIVEB)
+    new_config['Drives']['use_driveC'] = int(USE_DRIVEC)
     new_config['Drives']['driveA_name'] = DRIVEA_NAME
     new_config['Drives']['driveB_name'] = DRIVEB_NAME
     new_config['Drives']['driveC_name'] = DRIVEC_NAME

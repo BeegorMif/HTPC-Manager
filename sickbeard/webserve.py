@@ -1350,7 +1350,6 @@ class ConfigSoftware(MainHandler):
         else:
             use_speedfan = 0
 
-
         sickbeard.USE_DRIVES = use_drives
         sickbeard.USE_DRIVEA = use_driveA
         sickbeard.USE_DRIVEB = use_driveB
@@ -1366,6 +1365,7 @@ class ConfigSoftware(MainHandler):
         sickbeard.USE_EVENTGHOST = config.checkbox_to_value(use_eventghost)
         sickbeard.EVENTGHOST_SERVER_HOST = config.clean_host(eventghost_server_host)
 
+        sickbeard.USE_SPEEDFAN = config.checkbox_to_value(use_speedfan)
         sickbeard.SPEEDFAN_LOG_LOCATION = speedfan_log_location
 
         sickbeard.save_config()
