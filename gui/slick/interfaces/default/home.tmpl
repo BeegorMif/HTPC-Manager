@@ -9,7 +9,8 @@
 #set global $topmenu="home"#
 #import os.path
 #include $os.path.join($sickbeard.PROG_DIR, "gui/slick/interfaces/default/inc_top.tmpl")
-
+<script type="text/javascript" src="$sbRoot/js/moment.js?$sbPID"></script>
+<script type="text/javascript" src="$sbRoot/js/timeConverter.js?$sbPID"></script>
 <style type="text/css">
 .sort_data {display:none}
 </style>
@@ -25,26 +26,23 @@
   \$(".Plex").addClass("btn-default");
 });
 </script>
-<ul id="myTab" class="nav nav-tabs">
-   <li class="active">
-      <a href="#Plex" data-toggle="tab">
+<div class="well">
+<div class="panel-group" id="accordion">
+  <div class="panel panel-default" id="panel1">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-target="#collapseOne" 
+           href="#collapseOne">
          Plex
-      </a>
-   </li>
-   <li><a href="#Software" data-toggle="tab">Software</a></li>
-   <li class="dropdown">
-      <a href="#" id="myTabDrop1" class="dropdown-toggle" 
-         data-toggle="dropdown">System 
-         <b class="caret"></b>
-      </a>
-      <ul class="dropdown-menu" role="menu" aria-labelledby="System">
-         #if $sickbeard.USE_DRIVES:<li><a href="#space" tabindex="-1" data-toggle="tab">Free space</a></li>#
-         <li><a href="#temps" tabindex="-1" data-toggle="tab">Temps</a></li>
-      </ul>
-   </li>
-</ul>
-<div id="myTabContent" class="tab-content" style="margin-top:5px;margin-left:5px">
+        </a>
+      </h4>
+    </div>
+    <div id="collapseOne" class="panel-collapse collapse in">
+      <div class="panel-body">
+
+	  <div id="myTabContent" class="tab-content" style="margin-top:5px;margin-left:5px">
    <div class="tab-pane fade in active" id="Plex">
+<div class="well">
 #if $plexOpen:
     <div class="btn-group-vertical">
 <a href="/home/buttonsPLEX/?&action=Prev" class="Plex" id="Prev"><span class="glyphicon glyphicon-share-alt"></span></a>
@@ -76,15 +74,81 @@
 <a href="/home/buttonsPLEX/?&action=openPlex" class="btn btn-default" id="openPlex">Plex isn't open, click to open it</a>
 #end if
 </div>
-   <div class="tab-pane fade" id="Software">
+</div>
+    </div>
+    </div>
+    </div>
+    </div>
+
+  <div class="panel panel-default" id="panel3">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-target="#collapseThree" 
+           href="#collapseThree" class="collapsed">
+         Now Watching
+        </a>
+      </h4>
+    </div>
+    <div id="collapseThree" class="panel-collapse collapsed">
+      <div class="panel-body">
+	  #if $watching.type == "episode":
+<div class="well">
+ <div id="watchingContainer">
+	<div class="row">
+		<div class="col-md-4" id="showName">$watching.show.title</div>
+		<div class="col-md-4" id="seasonEpisode">Season $watching.episode.season - Episode $watching.episode.number</div>
+	</div>
+	<div class="col-md-8" id="overview">$watching.episode.overview</div>
+	<div class="col-md-offset-8" id="image"><img class="col-md-12" src="$watching.show.images.poster"</div>
+	<div class="row">
+		<div class="pull-right" id="released"></div>
+	</div>
+ </div>
+ <script>
+var c = timeConverter("$watching.episode.first_aired")
+aired = c.split('-');
+fuzzyAirdate = (moment(aired, "YYYY-MM-DD HH:mm Z").fromNow());
+var div = document.getElementById('released');
+div.innerHTML += fuzzyAirdate;
+</script>
+</div>
+#end if
+      </div>
+    </div>
+    </div>
+    </div>
+  <div class="panel panel-default" id="panel2">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-target="#collapseTwo"
+           href="#collapseTwo" class="collapsed">
+		   Software
+		           </a>
+      </h4>
+    </div>
+    <div id="collapseTwo" class="panel-collapse collapse">
+      <div class="panel-body">
 <div class="btn-group">
 <button type="button" class="btn btn-default" onclick="window.open('http://raspberrypi:5050/');">CouchPotato</button>
 <button type="button" class="btn btn-default" onclick="CouchPotatoScan()">Renamer</button>
 </div>
-
   <a href="EG-Action.php?event=PlexOpen&REFERER=index.php&REFERER=index.php" class="btn btn-default">Open Plex</span></a>
-  </div>
-   <div class="tab-pane fade" id="space">
+
+</div>
+
+      </div>
+      </div>
+    <div class="panel panel-default" id="panel4">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-target="#collapseFour"
+           href="#collapseFour" class="collapsed">
+System
+        </a>
+      </h4>
+    </div>
+    <div id="collapseFour" class="panel-collapse collapse">
+      <div class="panel-body">
 #if $sickbeard.USE_DRIVES:
  <table style="margin-top:15px">
    #if $sickbeard.USE_DRIVEA:
@@ -122,7 +186,7 @@
 <span>Drive space isn't enabled in the config</span>
 #end if
 </div>
-   <div class="tab-pane fade" id="temps">
+<div>
 #if $temps != "Error":
     <table class="table">
     <tr>
@@ -140,7 +204,6 @@
     <span>Could not open SpeedFan log</span>
 #end if
    </div>
-
-
+    </div>
 
 #include $os.path.join($sickbeard.PROG_DIR,"gui/slick/interfaces/default/inc_bottom.tmpl")
